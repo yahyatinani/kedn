@@ -1,0 +1,23 @@
+pluginManagement {
+  repositories {
+    mavenCentral()
+    google()
+    gradlePluginPortal()
+  }
+
+  includeBuild("buildLogic")
+}
+
+dependencyResolutionManagement {
+  defaultLibrariesExtensionName.set('deps')
+
+  // repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+  repositories {
+    mavenCentral()
+  }
+}
+
+// todo: change project name.
+rootProject.name = 'KMP Library Template'
+
+include 'core'

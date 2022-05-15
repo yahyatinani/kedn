@@ -1,0 +1,124 @@
+name: build
+
+on:
+  push:
+    paths-ignore:
+      - 'doc/**'
+      - 'docs/**'
+      - '*.md'
+      - '**/*.yml'
+    branches:
+      - main
+
+jobs:
+  linux_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Prepare Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+
+      - uses: gradle/gradle-build-action@v2
+
+      - name: Run tests
+        run: ./gradlew check --scan
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v2
+        with:
+          files: build/reports/kover/merged-report/result.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          verbose: true
+
+      - name: Bundle the build report (when failure)
+        if: failure()
+        run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
+
+      - name: Upload the build report (when failure)
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: error-report
+          path: build-reports.zip
+
+  macos_tests:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target:
+          - macosX64Test
+          - macosArm64Test
+          - iosX64Test
+          - iosSimulatorArm64Test
+          - iosArm64TestKlibrary
+          - iosArm32TestKlibrary
+          - tvosX64Test
+          - tvosArm64TestKlibrary
+          - watchosArm32TestKlibrary
+          - watchosArm64TestKlibrary
+          - watchosX86Test
+          - watchosX64Test
+
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Prepare Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+
+      - uses: gradle/gradle-build-action@v2
+
+      - name: Run tests then publish snapshot
+        run: ./gradlew ${{ matrix.target }} --scan
+
+      - name: Bundle the build report (when failure)
+        if: failure()
+        run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
+
+      - name: Upload the build report (when failure)
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: error-report
+          path: build-reports.zip
+
+  windows_tests:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: gradle/gradle-build-action@v2
+
+      - name: Run tests
+        run: ./gradlew mingwX64Test --scan
+
+      - name: Bundle the build report (when failure)
+        if: failure()
+        run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
+
+      - name: Upload the build report (when failure)
+        if: failure()
+        uses: actions/upload-artifact@master
+        with:
+          name: error-report
+          path: build-reports.zip
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.configureondemand=true -Dorg.gradle.parallel=false -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxPermSize=2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"

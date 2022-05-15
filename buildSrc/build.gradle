@@ -1,0 +1,3 @@
+plugins {
+  alias(deps.plugins.kotlin.jvm)
+}

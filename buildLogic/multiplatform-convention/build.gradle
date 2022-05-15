@@ -1,0 +1,19 @@
+plugins {
+  alias(deps.plugins.kotlin.jvm)
+  id("java-gradle-plugin")
+}
+
+gradlePlugin {
+  plugins {
+    multiplatform {
+      // todo: change pkg name
+      def pkg = "com.github.whyrising.kmplibtemplate.multiplatform"
+      id = pkg
+      implementationClass = "${pkg}.Conventions"
+    }
+  }
+}
+
+dependencies {
+  compileOnly deps.kotlin.plugin
+}
