@@ -17,7 +17,6 @@ dependencyResolutionManagement {
   }
 }
 
-// todo: change project name.
-rootProject.name = 'KMP Library Template'
+rootProject.name = 'kedn'
 
 include 'core'

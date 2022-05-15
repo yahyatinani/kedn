@@ -1,4 +1,4 @@
-import com.github.whyrising.kmplibtemplate.Ci
+import com.github.whyrising.kedn.Ci
 
 plugins {
   alias(deps.plugins.kotlin.multiplatform) apply false

@@ -1,7 +1,6 @@
 plugins {
   alias(deps.plugins.kotlin.multiplatform)
-  // todo: change id pkg name
-  id("com.github.whyrising.kmplibtemplate.multiplatform")
+  id("com.github.whyrising.kedn.multiplatform")
 }
 
 kotlin {

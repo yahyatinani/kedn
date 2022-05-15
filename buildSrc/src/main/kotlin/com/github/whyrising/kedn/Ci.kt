@@ -1,10 +1,9 @@
-package com.github.whyrising.kmplibtemplate
+package com.github.whyrising.kedn
 
 import java.lang.System.getenv
 
 object Ci {
-  // TODO: 5/14/22 change group
-  val group = "com.github.whyrising.kmplibtemplate"
+  val group = "com.github.whyrising.kedn"
 
   private const val snapshotBase = "0.0.1"
 

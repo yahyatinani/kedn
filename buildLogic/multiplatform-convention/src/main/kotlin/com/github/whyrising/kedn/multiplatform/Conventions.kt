@@ -1,4 +1,4 @@
-package com.github.whyrising.kmplibtemplate.multiplatform
+package com.github.whyrising.kedn.multiplatform
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
