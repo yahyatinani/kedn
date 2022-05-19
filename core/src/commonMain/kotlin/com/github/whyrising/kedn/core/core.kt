@@ -38,10 +38,11 @@ private fun isWhitespace(c: Char) = c.isWhitespace() || c == ','
 fun isMacro(ch: Int): Boolean = ch < EdnReader.macros.size &&
   EdnReader.macros[ch] != null
 
-internal fun invalidTokenChar(c: Char): Boolean {
-  // TODO: 5/19/22 test with # and ' when symbols available
-  return isWhitespace(c) || isMacro(c.code)
-}
+// TODO: 5/19/22 test with # and ' when symbols available
+private fun isTerminatingMacro(ch: Int) = isMacro(ch)
+
+internal fun invalidTokenChar(c: Char): Boolean =
+  isWhitespace(c) || isTerminatingMacro(c.code)
 
 internal fun readToken(ch0: Char, iterator: SequenceIterator<Char>) =
   buildString {
