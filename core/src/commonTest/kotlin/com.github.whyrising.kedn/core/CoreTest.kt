@@ -63,5 +63,13 @@ class CoreTest : FreeSpec({
       readString("-123") shouldBe -123L
       readString("-0x234") shouldBe -564L
     }
+
+    "floating-point numbers" {
+      readString("1.4") shouldBe 1.4
+      shouldThrowExactly<NotImplementedError> {
+        readString("1.4M")
+      }.message shouldBe "An operation is not implemented: big decimals are" +
+        " not supported yet."
+    }
   }
 })

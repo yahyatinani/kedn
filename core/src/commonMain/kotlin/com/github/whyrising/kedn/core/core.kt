@@ -9,10 +9,10 @@ package com.github.whyrising.kedn.core
   strings   -> String
  */
 val intRegex = Regex(
-  pattern = "" +
-    "([-+]?)(?:(0)|([1-9][0-9]*)|0[xX]([0-9A-Fa-f]+)|0([0-7]+)|([1-9][0-9]?)" +
+  "([-+]?)(?:(0)|([1-9][0-9]*)|0[xX]([0-9A-Fa-f]+)|0([0-7]+)|([1-9][0-9]?)" +
     "[rR]([0-9A-Za-z]+)|0[0-9]+)(N)?"
 )
+val floatRegex = Regex("([-+]?[0-9]+(\\.[0-9]*)?([eE][-+]?[0-9]+)?)(M)?")
 
 internal object EdnReader {
   val macros = arrayOfNulls<Any?>(256)
@@ -38,7 +38,7 @@ internal object EdnReader {
  * String to number if possible, else return null.
  */
 internal fun matchNumber(s: String): Any? {
-  val matchResult = intRegex.matchEntire(s)
+  var matchResult = intRegex.matchEntire(s)
   if (matchResult != null) {
     val groups = matchResult.groupValues
     if (groups[2] != "") {
@@ -78,6 +78,13 @@ internal fun matchNumber(s: String): Any? {
       TODO("Big integers are not supported yet.")
 
     return n.toLong(radix)
+  }
+
+  matchResult = floatRegex.matchEntire(s)
+  if (matchResult != null) {
+    if (matchResult.groups[4] != null)
+      TODO("big decimals are not supported yet.")
+    return s.toDouble()
   }
   return null
 }
