@@ -1,5 +1,6 @@
 package com.github.whyrising.kedn.core
 
+import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 
@@ -31,6 +32,36 @@ class CoreTest : FreeSpec({
       readString("\rnil") shouldBe null
       readString("\r\t\n  nil ") shouldBe null
       readString(",,,nil,,") shouldBe null
+    }
+
+    "integers" {
+      readString("0") shouldBe 0
+      readString("0000000000000000") shouldBe 0
+      readString("222") shouldBe 222L
+      readString("9223372036854775807") shouldBe 9223372036854775807L
+      readString("0x2342") shouldBe 9026L
+      readString("0X2342") shouldBe 9026L
+      readString("02342") shouldBe 1250L
+      readString("11r49A") shouldBe 593L
+      readString("11R49A") shouldBe 593L
+      readString("11R49A") shouldBe 593L
+      shouldThrowExactly<NotImplementedError> {
+        readString("14N")
+      }.message shouldBe "An operation is not implemented: Big integers are " +
+        "not supported yet."
+      shouldThrowExactly<NotImplementedError> {
+        readString("0N")
+      }.message shouldBe "An operation is not implemented: Big integers are " +
+        "not supported yet."
+
+      shouldThrowExactly<NumberFormatException> {
+        readString("1234j")
+      }.message shouldBe "Invalid number: 1234j"
+    }
+
+    "negative numbers" {
+      readString("-123") shouldBe -123L
+      readString("-0x234") shouldBe -564L
     }
   }
 })
