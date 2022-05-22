@@ -8,11 +8,16 @@ package com.github.whyrising.kedn.core
   character -> Char
   strings   -> String
  */
-val intRegex = Regex(
+
+private val intRegex = Regex(
   "([-+]?)(?:(0)|([1-9][0-9]*)|0[xX]([0-9A-Fa-f]+)|0([0-7]+)|([1-9][0-9]?)" +
     "[rR]([0-9A-Za-z]+)|0[0-9]+)(N)?"
 )
-val floatRegex = Regex("([-+]?[0-9]+(\\.[0-9]*)?([eE][-+]?[0-9]+)?)(M)?")
+
+private val floatRegex =
+  Regex("([-+]?[0-9]+(\\.[0-9]*)?([eE][-+]?[0-9]+)?)(M)?")
+
+private val ratioRegex = Regex("([-+]?[0-9]+)/([0-9]+)")
 
 internal object EdnReader {
   val macros = arrayOfNulls<Any?>(256)
@@ -92,6 +97,24 @@ internal fun matchNumber(s: String): Any? {
         type = NodeType.BigDecimal
       )
     return s.toDouble()
+  }
+
+  matchResult = ratioRegex.matchEntire(s)
+  if (matchResult != null) {
+    // TODO: 5/21/22 implement Ratio numbers
+    val s1 = matchResult.groupValues[1]
+    val s2 = matchResult.groupValues[2]
+    val numerator = try {
+      s1.toInt()
+    } catch (e: NumberFormatException) {
+      EdnNode(s1, NodeType.BigInt)
+    }
+    val denominator = try {
+      s2.toInt()
+    } catch (e: NumberFormatException) {
+      EdnNode(s2, NodeType.BigInt)
+    }
+    return Pair(numerator, denominator)
   }
   return null
 }

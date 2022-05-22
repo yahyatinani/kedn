@@ -81,5 +81,23 @@ class CoreTest : FreeSpec({
       readEdn("23.23423M") shouldBe EdnNode(value = "23.23423", BigDecimal)
       readEdn("0.0M") shouldBe EdnNode(value = "0.0", BigDecimal)
     }
+
+    "ratio numbers" {
+      readEdn("1/2") shouldBe Pair(1, 2)
+      readEdn("3/5") shouldBe Pair(3, 5)
+      readEdn("42342349275834759874234598435/5") shouldBe Pair(
+        EdnNode(
+          value = "42342349275834759874234598435",
+          type = BigInt
+        ), 5
+      )
+      readEdn("3/42342349275834759874234598435") shouldBe Pair(
+        3,
+        EdnNode(
+          value = "42342349275834759874234598435",
+          type = BigInt
+        )
+      )
+    }
   }
 })
