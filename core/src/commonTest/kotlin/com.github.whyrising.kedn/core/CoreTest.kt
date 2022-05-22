@@ -70,6 +70,12 @@ class CoreTest : FreeSpec({
       readString("0.0") shouldBe 0.0
       readString("0.4") shouldBe 0.4
       readString("+0.4") shouldBe 0.4
+      readString("2.3e-5") shouldBe 2.3e-5
+      readString("2.3e+5") shouldBe 2.3e+5
+      readString("2.3e5") shouldBe 2.3e5
+      readString("2.3E-5") shouldBe 2.3e-5
+      readString("2.3E+5") shouldBe 2.3e+5
+      readString("2.3E5") shouldBe 2.3e5
       readString("1.4M") shouldBe EdnNode(value = "1.4", BigDecimal)
       readString("+1.4M") shouldBe EdnNode(value = "1.4", BigDecimal)
       readString("23.23423M") shouldBe EdnNode(value = "23.23423", BigDecimal)
