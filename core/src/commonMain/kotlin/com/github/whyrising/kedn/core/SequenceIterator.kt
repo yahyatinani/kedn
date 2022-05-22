@@ -9,7 +9,7 @@ internal data class SequenceIterator<T>(
   private var skip: Boolean = false
   internal var previous: T? = null
 
-  override fun hasNext(): Boolean = iterator.hasNext()
+  override fun hasNext(): Boolean = iterator.hasNext() || skip
 
   override fun next(): T {
     if (skip) {

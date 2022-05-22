@@ -17,6 +17,18 @@ class CachedIteratorTest : FreeSpec({
     }
   }
 
+  "hasNext()" - {
+    "when hasNext() called after previous, it should return true" {
+      val l = listOf('-', '0')
+      val iterator = SequenceIterator(l.iterator())
+      iterator.next()
+      iterator.next()
+      iterator.previous()
+
+      iterator.hasNext() shouldBe true
+    }
+  }
+
   "hasPrevious()" {
     val l = listOf(1, 2, 3, 4, 5)
 
