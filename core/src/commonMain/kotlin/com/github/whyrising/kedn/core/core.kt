@@ -87,7 +87,7 @@ internal fun matchNumber(s: String): Any? {
   matchResult = floatRegex.matchEntire(s)
   if (matchResult != null) {
     if (matchResult.groups[4] != null)
-      TODO("big decimals are not supported yet.")
+      return EdnNode(matchResult.groupValues[1], NodeType.BigDecimal)
     return s.toDouble()
   }
   return null

@@ -1,5 +1,6 @@
 package com.github.whyrising.kedn.core
 
+import com.github.whyrising.kedn.core.NodeType.BigDecimal
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
@@ -63,11 +64,11 @@ class CoreTest : FreeSpec({
     }
 
     "floating-point numbers" {
-      readString("1.4") shouldBe 1.4
-      shouldThrowExactly<NotImplementedError> {
-        readString("1.4M")
-      }.message shouldBe "An operation is not implemented: big decimals are" +
-        " not supported yet."
+      readString("0.0") shouldBe 0.0
+      readString("0.4") shouldBe 0.4
+      readString("1.4M") shouldBe EdnNode(value = "1.4", BigDecimal)
+      readString("23.23423M") shouldBe EdnNode(value = "23.23423", BigDecimal)
+      readString("0.0M") shouldBe EdnNode(value = "0.0", BigDecimal)
     }
   }
 })
