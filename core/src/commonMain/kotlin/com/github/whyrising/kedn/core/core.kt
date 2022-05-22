@@ -77,7 +77,11 @@ internal fun matchNumber(s: String): Any? {
     if (groups[8] != "") // numbers that end with 'N'.
       TODO("Big integers are not supported yet.")
 
-    return n.toLong(radix)
+    return try {
+      n.toLong(radix)
+    } catch (e: NumberFormatException) {
+      TODO("big integers are not supported yet.")
+    }
   }
 
   matchResult = floatRegex.matchEntire(s)

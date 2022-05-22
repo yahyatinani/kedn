@@ -49,6 +49,7 @@ class CoreTest : FreeSpec({
         readString("14N")
       }.message shouldBe "An operation is not implemented: Big integers are " +
         "not supported yet."
+
       shouldThrowExactly<NotImplementedError> {
         readString("0N")
       }.message shouldBe "An operation is not implemented: Big integers are " +
@@ -57,6 +58,11 @@ class CoreTest : FreeSpec({
       shouldThrowExactly<NumberFormatException> {
         readString("1234j")
       }.message shouldBe "Invalid number: 1234j"
+
+      shouldThrowExactly<NotImplementedError> {
+        readString("922337203685477580834")
+      }.message shouldBe "An operation is not implemented: " +
+        "big integers are not supported yet."
     }
 
     "negative numbers" {
