@@ -32,7 +32,7 @@ jobs:
       - name: Spotless check
         run: ./gradlew spotlessCheck
 
-      # Linux tests
+      # JVM tests
       - name: Run ubuntu tests
         if: matrix.os == 'ubuntu-latest'
         run: ./gradlew check --scan
@@ -46,6 +46,11 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: true
           verbose: true
+
+      # linuxX64 tests
+      - name: Run ubuntu tests
+        if: matrix.os == 'ubuntu-latest'
+        run: ./gradlew linuxX64Test --scan
 
       # Windows tests
       - name: Run windows tests
