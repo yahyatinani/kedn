@@ -170,4 +170,4 @@ fun read(seq: Sequence<Char>): Any? {
   }
 }
 
-fun readString(edn: String): Any? = read(edn.asSequence())
+fun readEdn(edn: String): Any? = read(edn.asSequence())

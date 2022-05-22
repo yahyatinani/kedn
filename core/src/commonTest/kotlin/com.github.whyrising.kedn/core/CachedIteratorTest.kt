@@ -69,7 +69,7 @@ class CachedIteratorTest : FreeSpec({
     }
 
     """
-        when calling previous(), the next next() call should skip one iteration 
+        when calling previous(), the next next() call should skip one iteration
         and return the same last value.
       """ {
       val l = listOf(1, 2, 3, 4, 5)
@@ -83,7 +83,7 @@ class CachedIteratorTest : FreeSpec({
     }
 
     """
-        when calling previous() and then next(), any next next() call should 
+        when calling previous() and then next(), any next next() call should
         continue iterating as expected.
       """ {
       val l = listOf(1, 2, 3, 4, 5)
