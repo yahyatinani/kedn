@@ -45,24 +45,15 @@ class CoreTest : FreeSpec({
       readString("11r49A") shouldBe 593L
       readString("11R49A") shouldBe 593L
       readString("11R49A") shouldBe 593L
-      shouldThrowExactly<NotImplementedError> {
-        readString("14N")
-      }.message shouldBe "An operation is not implemented: Big integers are " +
-        "not supported yet."
-
-      shouldThrowExactly<NotImplementedError> {
-        readString("0N")
-      }.message shouldBe "An operation is not implemented: Big integers are " +
-        "not supported yet."
-
+      readString("14N") shouldBe EdnNode("14", NodeType.BigInt)
+      readString("0N") shouldBe EdnNode("0", NodeType.BigInt)
+      readString("922337203685477580834") shouldBe EdnNode(
+        value = "922337203685477580834",
+        type = NodeType.BigInt
+      )
       shouldThrowExactly<NumberFormatException> {
         readString("1234j")
       }.message shouldBe "Invalid number: 1234j"
-
-      shouldThrowExactly<NotImplementedError> {
-        readString("922337203685477580834")
-      }.message shouldBe "An operation is not implemented: " +
-        "big integers are not supported yet."
     }
 
     "negative numbers" {

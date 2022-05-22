@@ -43,7 +43,7 @@ internal fun matchNumber(s: String): Any? {
     val groups = matchResult.groupValues
     if (groups[2] != "") {
       if (groups[8] != "")
-        TODO("Big integers are not supported yet.")
+        return EdnNode("0", NodeType.BigInt)
       return 0L
     }
 
@@ -75,12 +75,12 @@ internal fun matchNumber(s: String): Any? {
       n = "-$n"
 
     if (groups[8] != "") // numbers that end with 'N'.
-      TODO("Big integers are not supported yet.")
+      return EdnNode(n, NodeType.BigInt)
 
     return try {
       n.toLong(radix)
     } catch (e: NumberFormatException) {
-      TODO("big integers are not supported yet.")
+      return EdnNode(n, NodeType.BigInt)
     }
   }
 
