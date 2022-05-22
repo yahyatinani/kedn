@@ -1,6 +1,7 @@
 package com.github.whyrising.kedn.core
 
 import com.github.whyrising.kedn.core.NodeType.BigDecimal
+import com.github.whyrising.kedn.core.NodeType.BigInt
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
@@ -46,12 +47,14 @@ class CoreTest : FreeSpec({
       readString("11r49A") shouldBe 593L
       readString("11R49A") shouldBe 593L
       readString("11R49A") shouldBe 593L
-      readString("14N") shouldBe EdnNode("14", NodeType.BigInt)
-      readString("0N") shouldBe EdnNode("0", NodeType.BigInt)
+      readString("14N") shouldBe EdnNode("14", BigInt)
+      readString("0N") shouldBe EdnNode("0", BigInt)
       readString("922337203685477580834") shouldBe EdnNode(
         value = "922337203685477580834",
-        type = NodeType.BigInt
+        type = BigInt
       )
+      readString("+2423") shouldBe 2423
+      readString("+2423N") shouldBe EdnNode("2423", BigInt)
       shouldThrowExactly<NumberFormatException> {
         readString("1234j")
       }.message shouldBe "Invalid number: 1234j"
@@ -66,7 +69,9 @@ class CoreTest : FreeSpec({
     "floating-point numbers" {
       readString("0.0") shouldBe 0.0
       readString("0.4") shouldBe 0.4
+      readString("+0.4") shouldBe 0.4
       readString("1.4M") shouldBe EdnNode(value = "1.4", BigDecimal)
+      readString("+1.4M") shouldBe EdnNode(value = "1.4", BigDecimal)
       readString("23.23423M") shouldBe EdnNode(value = "23.23423", BigDecimal)
       readString("0.0M") shouldBe EdnNode(value = "0.0", BigDecimal)
     }

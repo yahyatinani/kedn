@@ -87,7 +87,10 @@ internal fun matchNumber(s: String): Any? {
   matchResult = floatRegex.matchEntire(s)
   if (matchResult != null) {
     if (matchResult.groups[4] != null)
-      return EdnNode(matchResult.groupValues[1], NodeType.BigDecimal)
+      return EdnNode(
+        value = matchResult.groupValues[1].removePrefix("+"),
+        type = NodeType.BigDecimal
+      )
     return s.toDouble()
   }
   return null
@@ -152,7 +155,7 @@ fun read(seq: Sequence<Char>): Any? {
     if (ch.isDigit())
       return readNumber(ch, iterator)
 
-    if (ch == '-') {
+    if (ch == '-' || ch == '+') {
       val ch2 = iterator.next()
       if (ch2.isDigit()) {
         iterator.previous()
