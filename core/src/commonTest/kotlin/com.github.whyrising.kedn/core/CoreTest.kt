@@ -89,7 +89,8 @@ class CoreTest : FreeSpec({
         EdnNode(
           value = "42342349275834759874234598435",
           type = BigInt
-        ), 5
+        ),
+        5
       )
       readEdn("3/42342349275834759874234598435") shouldBe Pair(
         3,
