@@ -62,6 +62,7 @@ class CoreTest : FreeSpec({
     "negative numbers" {
       readString("-123") shouldBe -123L
       readString("-0x234") shouldBe -564L
+      readString("-0") shouldBe 0L
     }
 
     "floating-point numbers" {
