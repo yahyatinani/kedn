@@ -1,5 +1,7 @@
 package com.github.whyrising.kedn.core
 
+import com.github.whyrising.kedn.core.EdnReader.macros
+
 /* Built-in
   nil       -> null
   boolean   -> Boolean
@@ -119,12 +121,16 @@ internal fun matchNumber(s: String): Any? {
   return null
 }
 
+fun isMacro(ch: Int) = ch < macros.size && macros[ch] != null
+
+private fun isWhitespace(c: Char) = c.isWhitespace() || c == ','
+
 internal fun readNumber(ch0: Char, iterator: SequenceIterator<Char>): Any {
   val s = buildString {
     append(ch0)
     while (iterator.hasNext()) {
       val ch = iterator.next()
-      if (isWhitespace(ch)) {
+      if (isWhitespace(ch) || isMacro(ch.code)) {
         iterator.previous()
         break
       }
@@ -134,11 +140,6 @@ internal fun readNumber(ch0: Char, iterator: SequenceIterator<Char>): Any {
   return matchNumber(s)
     ?: throw NumberFormatException("Invalid number: $s")
 }
-
-private fun isWhitespace(c: Char) = c.isWhitespace() || c == ','
-
-fun isMacro(ch: Int): Boolean = ch < EdnReader.macros.size &&
-  EdnReader.macros[ch] != null
 
 // TODO: 5/19/22 test with # and ' when symbols available
 private fun isTerminatingMacro(ch: Int) = isMacro(ch)

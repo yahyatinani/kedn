@@ -106,5 +106,11 @@ class CoreTest : FreeSpec({
       readEdn("0.4 2 234") shouldBe 0.4
       readEdn("-3 2 234") shouldBe -3
     }
+
+    "when a macro appears after a number, return that number" {
+      readEdn("-3]4 74 0") shouldBe -3
+      readEdn("6{4 74 0") shouldBe 6
+      readEdn("6(4 74 0") shouldBe 6
+    }
   }
 })
