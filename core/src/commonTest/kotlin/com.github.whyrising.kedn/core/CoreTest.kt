@@ -7,7 +7,7 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 
 class CoreTest : FreeSpec({
-  "readEdn()" - {
+  "readEdn(edn:String)" - {
     "nil and boolean" {
       readEdn("nil") shouldBe null
       readEdn("true") shouldBe true
@@ -111,6 +111,16 @@ class CoreTest : FreeSpec({
       readEdn("-3]4 74 0") shouldBe -3
       readEdn("6{4 74 0") shouldBe 6
       readEdn("6(4 74 0") shouldBe 6
+    }
+
+    "strings" {
+      readEdn("\"test\"") shouldBe "test"
+      readEdn("\"abcdefZZ\"") shouldBe "abcdefZZ"
+      readEdn("\"tests are good\"") shouldBe "tests are good"
+      readEdn("\"[]{}\"") shouldBe "[]{}"
+      shouldThrowExactly<RuntimeException> {
+        readEdn("\"sdfhsd")
+      }.message shouldBe "EOF while reading string"
     }
   }
 })

@@ -1,6 +1,9 @@
 package com.github.whyrising.kedn.core
 
+import com.github.whyrising.kedn.core.EdnReader.macroFn
 import com.github.whyrising.kedn.core.EdnReader.macros
+
+internal typealias MacroFn = (reader: CachedIterator<Char>, macro: Char) -> Any
 
 /* Built-in
   nil       -> null
@@ -22,22 +25,38 @@ private val floatRegex =
 private val ratioRegex = Regex("([-+]?[0-9]+)/([0-9]+)")
 
 internal object EdnReader {
-  val macros = arrayOfNulls<Any?>(256)
+  val macros = arrayOfNulls<MacroFn?>(256)
 
   init {
-    // TODO: 5/19/22 change any to readers
-    val any = Any()
-    macros['"'.code] = any
-    macros[';'.code] = any
-    macros['^'.code] = any
-    macros['('.code] = any
-    macros[')'.code] = any
-    macros['['.code] = any
-    macros[']'.code] = any
-    macros['{'.code] = any
-    macros['}'.code] = any
-    macros['\\'.code] = any
+    val fn: MacroFn = { _, _ -> }
+    val stringReaderFn: MacroFn = { reader: CachedIterator<*>, _ ->
+      buildString {
+        while (reader.hasNext()) {
+          val ch = reader.next()
+          if (ch != '"') {
+            if (!reader.hasNext())
+              throw RuntimeException("EOF while reading string")
+            append(ch)
+          } else continue
+        }
+      }
+    }
+    macros['"'.code] = stringReaderFn
+    macros[';'.code] = fn
+    macros['^'.code] = fn
+    macros['('.code] = fn
+    macros[')'.code] = fn
+    macros['['.code] = fn
+    macros[']'.code] = fn
+    macros['{'.code] = fn
+    macros['}'.code] = fn
+    macros['\\'.code] = fn
 //    macros['#'.code] = any
+  }
+
+  fun macroFn(ch: Char): ((CachedIterator<Char>, Char) -> Any)? = when {
+    ch.code < macros.size -> macros[ch.code]
+    else -> null
   }
 }
 
@@ -181,6 +200,12 @@ fun read(seq: Sequence<Char>): Any? {
 
     if (ch.isDigit())
       return readNumber(ch, iterator)
+
+    val macroFn: MacroFn? = macroFn(ch)
+    if (macroFn != null) {
+      val ret = macroFn(iterator, ch)
+      return ret
+    }
 
     if (ch == '-' || ch == '+') {
       val ch2 = iterator.next()
