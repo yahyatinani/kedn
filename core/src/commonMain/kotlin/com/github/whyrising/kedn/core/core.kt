@@ -85,7 +85,7 @@ internal fun matchNumber(s: String): Any? {
     return try {
       n.toLong(radix)
     } catch (e: NumberFormatException) {
-      return EdnNode(n, NodeType.BigInt)
+      EdnNode(n, NodeType.BigInt)
     }
   }
 
@@ -124,7 +124,10 @@ internal fun readNumber(ch0: Char, iterator: SequenceIterator<Char>): Any {
     append(ch0)
     while (iterator.hasNext()) {
       val ch = iterator.next()
-//    todo:  if whitespace or macro
+      if (isWhitespace(ch)) {
+        iterator.previous()
+        break
+      }
       append(ch)
     }
   }
