@@ -7,7 +7,7 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 
 class CoreTest : FreeSpec({
-  "readString()" - {
+  "readEdn()" - {
     "nil and boolean" {
       readEdn("nil") shouldBe null
       readEdn("true") shouldBe true
@@ -99,6 +99,18 @@ class CoreTest : FreeSpec({
           type = BigInt
         )
       )
+    }
+
+    "when multiple number in edn, read first number only " {
+      readEdn("0 2 234") shouldBe 0
+      readEdn("0.4 2 234") shouldBe 0.4
+      readEdn("-3 2 234") shouldBe -3
+    }
+
+    "when a macro appears after a number, return that number" {
+      readEdn("-3]4 74 0") shouldBe -3
+      readEdn("6{4 74 0") shouldBe 6
+      readEdn("6(4 74 0") shouldBe 6
     }
   }
 })
