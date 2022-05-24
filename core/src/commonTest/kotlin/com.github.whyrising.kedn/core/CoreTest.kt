@@ -137,6 +137,7 @@ class CoreTest : FreeSpec({
         readEdn("\"saef\\u000c\"") shouldBe "saef\u000c"
         readEdn("\"saef\\u000A\"") shouldBe "saef\n"
         readEdn("\"saef\\u0009\"") shouldBe "saef\t"
+
         shouldThrowExactly<RuntimeException> {
           readEdn("\"saef\\uh")
         }.message shouldBe "Invalid unicode escape: \\uh"
@@ -174,6 +175,10 @@ class CoreTest : FreeSpec({
         shouldThrowExactly<RuntimeException> {
           readEdn("\"saef\\66666\"")
         }.message shouldBe "Octal escape sequence must be in range [0, 255]."
+
+        shouldThrowExactly<IllegalArgumentException> {
+          readEdn("\"saef\\92z\"")
+        }.message shouldBe "Invalid digit: 9"
       }
     }
   }
