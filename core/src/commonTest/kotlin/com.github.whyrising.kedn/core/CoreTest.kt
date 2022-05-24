@@ -7,7 +7,7 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 
 class CoreTest : FreeSpec({
-  "readEdn(edn:String)" - {
+  "readEdn(edn)" - {
     "nil and boolean" {
       readEdn("nil") shouldBe null
       readEdn("true") shouldBe true

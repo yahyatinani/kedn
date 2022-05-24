@@ -35,7 +35,7 @@ jobs:
       # JVM tests
       - name: Run ubuntu tests
         if: matrix.os == 'ubuntu-latest'
-        run: ./gradlew check --scan
+        run: ./gradlew check --stacktrace
 
       - name: Upload coverage reports
         if: matrix.os == 'ubuntu-latest'
@@ -50,7 +50,7 @@ jobs:
       # linuxX64 tests
       - name: Run ubuntu tests
         if: matrix.os == 'ubuntu-latest'
-        run: ./gradlew linuxX64Test --scan
+        run: ./gradlew linuxX64Test --stacktrace
 
       # Windows tests
       - name: Run windows tests
@@ -60,19 +60,19 @@ jobs:
       # macOS
       - name: Run macOS tests
         if: matrix.os == 'macos-latest'
-        run: ./gradlew macosX64Test macosArm64TestKlibrary --scan
+        run: ./gradlew macosX64Test macosArm64TestKlibrary --stacktrace
 
       - name: Run watchOS tests
         if: matrix.os == 'macos-latest'
-        run: ./gradlew watchosArm32TestKlibrary watchosArm64TestKlibrary watchosSimulatorArm64TestKlibrary watchosX86Test watchosX64Test --scan
+        run: ./gradlew watchosArm32TestKlibrary watchosArm64TestKlibrary watchosSimulatorArm64TestKlibrary watchosX86Test watchosX64Test --stacktrace
 
       - name: Run tvOS tests
         if: matrix.os == 'macos-latest'
-        run: ./gradlew tvosArm64TestKlibrary tvosSimulatorArm64TestKlibrary tvosX64Test --scan
+        run: ./gradlew tvosArm64TestKlibrary tvosSimulatorArm64TestKlibrary tvosX64Test --stacktrace
 
       - name: Run iOS tests
         if: matrix.os == 'macos-latest'
-        run: ./gradlew iosArm32TestKlibrary iosArm64TestKlibrary iosSimulatorArm64TestKlibrary iosX64Test --scan
+        run: ./gradlew iosArm32TestKlibrary iosArm64TestKlibrary iosSimulatorArm64TestKlibrary iosX64Test --stacktrace
 
       # failure build report
       - name: Bundle the build report (when failure)
