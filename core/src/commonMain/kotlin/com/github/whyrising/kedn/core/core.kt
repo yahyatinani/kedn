@@ -26,63 +26,63 @@ private val ratioRegex = Regex("([-+]?[0-9]+)/([0-9]+)")
 
 internal object EdnReader {
   val macros = arrayOfNulls<MacroFn?>(256)
+  private val placeholder: MacroFn = { _, _ -> }
+  private val stringReaderFn: MacroFn = { reader, _ ->
+    buildString {
+      while (reader.hasNext()) {
+        var ch = reader.next()
+        if (ch != '"') {
+          if (!reader.hasNext())
+            throw RuntimeException("EOF while reading string")
 
-  init {
-    val fn: MacroFn = { _, _ -> }
-    val stringReaderFn: MacroFn = { reader, _ ->
-      buildString {
-        while (reader.hasNext()) {
-          var ch = reader.next()
-          if (ch != '"') {
-            if (!reader.hasNext())
-              throw RuntimeException("EOF while reading string")
-
-            if (ch == '\\') {
-              ch = reader.next()
-              ch = when (ch) {
-                'n' -> '\n'
-                't' -> '\t'
-                'r' -> '\r'
-                'b' -> '\b'
-                'f' -> '\u000c'
-                '"' -> break
-                '\\' -> break
-                'u' -> {
-                  ch = reader.next()
-                  if (ch.digitToIntOrNull(16) == null)
-                    throw RuntimeException("Invalid unicode escape: \\u$ch")
-                  readUnicodeChar(reader, ch, 16, 4, true)
+          if (ch == '\\') {
+            ch = reader.next()
+            ch = when (ch) {
+              'n' -> '\n'
+              't' -> '\t'
+              'r' -> '\r'
+              'b' -> '\b'
+              'f' -> '\u000c'
+              '"' -> break
+              '\\' -> break
+              'u' -> {
+                ch = reader.next()
+                if (ch.digitToIntOrNull(16) == null)
+                  throw RuntimeException("Invalid unicode escape: \\u$ch")
+                readUnicodeChar(reader, ch, 16, 4, true)
+              }
+              else -> when {
+                ch.isDigit() -> {
+                  val ret = readUnicodeChar(reader, ch, 8, 3, false)
+                  if (ret.code > 255)
+                    throw RuntimeException(
+                      "Octal escape sequence must be in range [0, 255]."
+                    )
+                  else ret
                 }
-                else -> when {
-                  ch.isDigit() -> {
-                    val ret = readUnicodeChar(reader, ch, 8, 3, false)
-                    if (ret.code > 255)
-                      throw RuntimeException(
-                        "Octal escape sequence must be in range [0, 255]."
-                      )
-                    else ret
-                  }
-                  else -> throw RuntimeException(
-                    "Unsupported escape character: \\$ch"
-                  )
-                }
+                else -> throw RuntimeException(
+                  "Unsupported escape character: \\$ch"
+                )
               }
             }
-            append(ch)
-          } else break
-        }
+          }
+          append(ch)
+        } else break
       }
     }
+  }
+
+  init {
     macros['"'.code] = stringReaderFn
-    macros[';'.code] = fn
-    macros['^'.code] = fn
-    macros['('.code] = fn
-    macros[')'.code] = fn
-    macros['['.code] = fn
-    macros[']'.code] = fn
-    macros['{'.code] = fn
-    macros['}'.code] = fn
-    macros['\\'.code] = fn
+    macros[';'.code] = placeholder
+    macros['^'.code] = placeholder
+    macros['('.code] = placeholder
+    macros[')'.code] = placeholder
+    macros['['.code] = placeholder
+    macros[']'.code] = placeholder
+    macros['{'.code] = placeholder
+    macros['}'.code] = placeholder
+    macros['\\'.code] = placeholder
 //    macros['#'.code] = any
   }
 
