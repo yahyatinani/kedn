@@ -113,14 +113,54 @@ class CoreTest : FreeSpec({
       readEdn("6(4 74 0") shouldBe 6
     }
 
-    "strings" {
-      readEdn("\"test\"") shouldBe "test"
-      readEdn("\"abcdefZZ\"") shouldBe "abcdefZZ"
-      readEdn("\"tests are good\"") shouldBe "tests are good"
-      readEdn("\"[]{}\"") shouldBe "[]{}"
-      shouldThrowExactly<RuntimeException> {
-        readEdn("\"sdfhsd")
-      }.message shouldBe "EOF while reading string"
+    "strings" - {
+      "basic" {
+        readEdn("\"test\"") shouldBe "test"
+        readEdn("\"abcdefZZ\"") shouldBe "abcdefZZ"
+        readEdn("\"tests are good\"") shouldBe "tests are good"
+        readEdn("\"[]{}\"") shouldBe "[]{}"
+        shouldThrowExactly<RuntimeException> {
+          readEdn("\"sdfhsd")
+        }.message shouldBe "EOF while reading string"
+      }
+
+      "escape" {
+        readEdn("\"test\\ntest\"") shouldBe "test\ntest"
+        readEdn("\"test\\ttest\"") shouldBe "test\ttest"
+        readEdn("\"test\\rtest\"") shouldBe "test\rtest"
+        readEdn("\"test\\btest\"") shouldBe "test\btest"
+        readEdn("\"test\\ftest\"") shouldBe "test\u000ctest"
+        readEdn("\"sj\"ewr\"") shouldBe "sj"
+      }
+
+      "unicodes with exact length" {
+        readEdn("\"saef\\u000c\"") shouldBe "saef\u000c"
+        readEdn("\"saef\\u000A\"") shouldBe "saef\n"
+        readEdn("\"saef\\u0009\"") shouldBe "saef\t"
+        shouldThrowExactly<RuntimeException> {
+          readEdn("\"saef\\uh")
+        }.message shouldBe "Invalid unicode escape: \\uh"
+
+        shouldThrowExactly<IllegalArgumentException> {
+          readEdn("\"saef\\u0zzzz\"")
+        }.message shouldBe "Invalid digit: z"
+
+        shouldThrowExactly<IllegalArgumentException> {
+          readEdn("\"saef\\u0zzz\"")
+        }.message shouldBe "Invalid digit: z"
+
+        shouldThrowExactly<IllegalArgumentException> {
+          readEdn("\"saef\\u00 0A\"")
+        }.message shouldBe "Invalid character length: 2, should be: 4"
+
+        shouldThrowExactly<IllegalArgumentException> {
+          readEdn("\"saef\\u00]0A\"")
+        }.message shouldBe "Invalid character length: 2, should be: 4"
+
+        shouldThrowExactly<IllegalArgumentException> {
+          readEdn("\"saef\\u00")
+        }.message shouldBe "Invalid character length: 2, should be: 4"
+      }
     }
   }
 })

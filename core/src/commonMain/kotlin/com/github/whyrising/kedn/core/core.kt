@@ -29,15 +29,37 @@ internal object EdnReader {
 
   init {
     val fn: MacroFn = { _, _ -> }
-    val stringReaderFn: MacroFn = { reader: CachedIterator<*>, _ ->
+    val stringReaderFn: MacroFn = { reader, _ ->
       buildString {
         while (reader.hasNext()) {
-          val ch = reader.next()
+          var ch = reader.next()
           if (ch != '"') {
             if (!reader.hasNext())
               throw RuntimeException("EOF while reading string")
+
+            if (ch == '\\') {
+              ch = reader.next()
+              ch = when (ch) {
+                'n' -> '\n'
+                't' -> '\t'
+                'r' -> '\r'
+                'b' -> '\b'
+                'f' -> '\u000c'
+                '"' -> break
+                '\\' -> break
+                'u' -> {
+                  ch = reader.next()
+                  if (ch.digitToIntOrNull(16) == null)
+                    throw RuntimeException("Invalid unicode escape: \\u$ch")
+                  readUnicodeChar(reader, ch, 16, 4, true)
+                }
+                else -> {
+                  TODO()
+                }
+              }
+            }
             append(ch)
-          } else continue
+          } else break
         }
       }
     }
@@ -52,6 +74,37 @@ internal object EdnReader {
     macros['}'.code] = fn
     macros['\\'.code] = fn
 //    macros['#'.code] = any
+  }
+
+  private fun readUnicodeChar(
+    reader: CachedIterator<Char>,
+    initch: Char,
+    base: Int,
+    length: Int,
+    exact: Boolean
+  ): Char {
+    var uc = initch.digitToIntOrNull(base)
+      ?: throw IllegalArgumentException("Invalid digit: $initch")
+
+    var i = 1
+    while (i < length) {
+      val ch = if (reader.hasNext()) reader.next() else null
+      if (ch == null || isWhitespace(ch) || isMacro(ch.code)) {
+        reader.previous()
+        break
+      }
+      val digit = ch.digitToIntOrNull(base)
+        ?: throw IllegalArgumentException("Invalid digit: $ch")
+      uc = uc * base + digit
+      i++
+    }
+
+    if (i != length) // todo: use exact
+      throw IllegalArgumentException(
+        "Invalid character length: $i, should be: $length"
+      )
+
+    return uc.toChar()
   }
 
   fun macroFn(ch: Char): ((CachedIterator<Char>, Char) -> Any)? = when {
