@@ -114,10 +114,8 @@ internal object EdnReader {
     return uc.toChar()
   }
 
-  fun macroFn(ch: Char): ((CachedIterator<Char>, Char) -> Any)? = when {
-    ch.code < macros.size -> macros[ch.code]
-    else -> null
-  }
+  fun macroFn(ch: Char): ((CachedIterator<Char>, Char) -> Any)? =
+    macros[ch.code]
 }
 
 /**
