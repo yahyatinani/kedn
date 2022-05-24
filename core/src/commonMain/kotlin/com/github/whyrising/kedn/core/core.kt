@@ -53,8 +53,18 @@ internal object EdnReader {
                     throw RuntimeException("Invalid unicode escape: \\u$ch")
                   readUnicodeChar(reader, ch, 16, 4, true)
                 }
-                else -> {
-                  TODO()
+                else -> when {
+                  ch.isDigit() -> {
+                    val ret = readUnicodeChar(reader, ch, 8, 3, false)
+                    if (ret.code > 255)
+                      throw RuntimeException(
+                        "Octal escape sequence must be in range [0, 255]."
+                      )
+                    else ret
+                  }
+                  else -> throw RuntimeException(
+                    "Unsupported escape character: \\$ch"
+                  )
                 }
               }
             }
@@ -85,7 +95,6 @@ internal object EdnReader {
   ): Char {
     var uc = initch.digitToIntOrNull(base)
       ?: throw IllegalArgumentException("Invalid digit: $initch")
-
     var i = 1
     while (i < length) {
       val ch = if (reader.hasNext()) reader.next() else null
@@ -98,12 +107,10 @@ internal object EdnReader {
       uc = uc * base + digit
       i++
     }
-
-    if (i != length) // todo: use exact
+    if (i != length && exact)
       throw IllegalArgumentException(
         "Invalid character length: $i, should be: $length"
       )
-
     return uc.toChar()
   }
 

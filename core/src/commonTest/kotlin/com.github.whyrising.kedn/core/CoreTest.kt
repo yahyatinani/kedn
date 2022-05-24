@@ -161,6 +161,21 @@ class CoreTest : FreeSpec({
           readEdn("\"saef\\u00")
         }.message shouldBe "Invalid character length: 2, should be: 4"
       }
+
+      "escape chars" {
+        readEdn("\"saef\\1000A\"") shouldBe "saef@0A"
+        readEdn("\"saef\\100\"") shouldBe "saef@"
+        readEdn("\"saef\\10 0\"") shouldBe "saef 0"
+        readEdn("\"saef\\377\"") shouldBe "saefÿ"
+
+        shouldThrowExactly<RuntimeException> {
+          readEdn("\"saef\\z000A\"")
+        }.message shouldBe "Unsupported escape character: \\z"
+
+        shouldThrowExactly<RuntimeException> {
+          readEdn("\"saef\\66666\"")
+        }.message shouldBe "Octal escape sequence must be in range [0, 255]."
+      }
     }
   }
 })
