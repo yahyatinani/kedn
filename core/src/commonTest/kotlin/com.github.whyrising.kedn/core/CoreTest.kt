@@ -166,7 +166,6 @@ class CoreTest : FreeSpec({
         readEdn("\"saef\\1000A\"") shouldBe "saef@0A"
         readEdn("\"saef\\100\"") shouldBe "saef@"
         readEdn("\"saef\\10 0\"") shouldBe "saef 0"
-        readEdn("\"saef\\377\"") shouldBe "saefÿ"
 
         shouldThrowExactly<RuntimeException> {
           readEdn("\"saef\\z000A\"")
