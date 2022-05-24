@@ -182,7 +182,6 @@ internal fun matchNumber(s: String): Any? {
 
   matchResult = ratioRegex.matchEntire(s)
   if (matchResult != null) {
-    // TODO: 5/21/22 implement Ratio numbers
     val s1 = matchResult.groupValues[1]
     val s2 = matchResult.groupValues[2]
     val numerator = try {
