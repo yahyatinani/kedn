@@ -1,6 +1,9 @@
 package com.github.whyrising.kedn.core
 
+import com.github.whyrising.kedn.core.EdnReader.macroFn
 import com.github.whyrising.kedn.core.EdnReader.macros
+
+internal typealias MacroFn = (reader: CachedIterator<Char>, macro: Char) -> Any
 
 /* Built-in
   nil       -> null
@@ -22,23 +25,97 @@ private val floatRegex =
 private val ratioRegex = Regex("([-+]?[0-9]+)/([0-9]+)")
 
 internal object EdnReader {
-  val macros = arrayOfNulls<Any?>(256)
+  val macros = arrayOfNulls<MacroFn?>(256)
+  private val placeholder: MacroFn = { _, _ -> }
+  private val stringReaderFn: MacroFn = { reader, _ ->
+    buildString {
+      while (reader.hasNext()) {
+        var ch = reader.next()
+        if (ch != '"') {
+          if (!reader.hasNext())
+            throw RuntimeException("EOF while reading string")
+
+          if (ch == '\\') {
+            ch = reader.next()
+            ch = when (ch) {
+              'n' -> '\n'
+              't' -> '\t'
+              'r' -> '\r'
+              'b' -> '\b'
+              'f' -> '\u000c'
+              '"' -> break
+              '\\' -> break
+              'u' -> {
+                ch = reader.next()
+                if (ch.digitToIntOrNull(16) == null)
+                  throw RuntimeException("Invalid unicode escape: \\u$ch")
+                readUnicodeChar(reader, ch, 16, 4, true)
+              }
+              else -> when {
+                ch.isDigit() -> {
+                  val ret = readUnicodeChar(reader, ch, 8, 3, false)
+                  if (ret.code > 255)
+                    throw RuntimeException(
+                      "Octal escape sequence must be in range [0, 255]."
+                    )
+                  else ret
+                }
+                else -> throw RuntimeException(
+                  "Unsupported escape character: \\$ch"
+                )
+              }
+            }
+          }
+          append(ch)
+        } else break
+      }
+    }
+  }
 
   init {
-    // TODO: 5/19/22 change any to readers
-    val any = Any()
-    macros['"'.code] = any
-    macros[';'.code] = any
-    macros['^'.code] = any
-    macros['('.code] = any
-    macros[')'.code] = any
-    macros['['.code] = any
-    macros[']'.code] = any
-    macros['{'.code] = any
-    macros['}'.code] = any
-    macros['\\'.code] = any
+    macros['"'.code] = stringReaderFn
+    macros[';'.code] = placeholder
+    macros['^'.code] = placeholder
+    macros['('.code] = placeholder
+    macros[')'.code] = placeholder
+    macros['['.code] = placeholder
+    macros[']'.code] = placeholder
+    macros['{'.code] = placeholder
+    macros['}'.code] = placeholder
+    macros['\\'.code] = placeholder
 //    macros['#'.code] = any
   }
+
+  private fun readUnicodeChar(
+    reader: CachedIterator<Char>,
+    initch: Char,
+    base: Int,
+    length: Int,
+    exact: Boolean
+  ): Char {
+    var uc = initch.digitToIntOrNull(base)
+      ?: throw IllegalArgumentException("Invalid digit: $initch")
+    var i = 1
+    while (i < length) {
+      val ch = if (reader.hasNext()) reader.next() else null
+      if (ch == null || isWhitespace(ch) || isMacro(ch.code)) {
+        reader.previous()
+        break
+      }
+      val digit = ch.digitToIntOrNull(base)
+        ?: throw IllegalArgumentException("Invalid digit: $ch")
+      uc = uc * base + digit
+      i++
+    }
+    if (i != length && exact)
+      throw IllegalArgumentException(
+        "Invalid character length: $i, should be: $length"
+      )
+    return uc.toChar()
+  }
+
+  fun macroFn(ch: Char): ((CachedIterator<Char>, Char) -> Any)? =
+    macros[ch.code]
 }
 
 /**
@@ -103,7 +180,6 @@ internal fun matchNumber(s: String): Any? {
 
   matchResult = ratioRegex.matchEntire(s)
   if (matchResult != null) {
-    // TODO: 5/21/22 implement Ratio numbers
     val s1 = matchResult.groupValues[1]
     val s2 = matchResult.groupValues[2]
     val numerator = try {
@@ -181,6 +257,12 @@ fun read(seq: Sequence<Char>): Any? {
 
     if (ch.isDigit())
       return readNumber(ch, iterator)
+
+    val macroFn: MacroFn? = macroFn(ch)
+    if (macroFn != null) {
+      val ret = macroFn(iterator, ch)
+      return ret
+    }
 
     if (ch == '-' || ch == '+') {
       val ch2 = iterator.next()

@@ -7,7 +7,7 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 
 class CoreTest : FreeSpec({
-  "readEdn()" - {
+  "readEdn(edn)" - {
     "nil and boolean" {
       readEdn("nil") shouldBe null
       readEdn("true") shouldBe true
@@ -111,6 +111,75 @@ class CoreTest : FreeSpec({
       readEdn("-3]4 74 0") shouldBe -3
       readEdn("6{4 74 0") shouldBe 6
       readEdn("6(4 74 0") shouldBe 6
+    }
+
+    "strings" - {
+      "basic" {
+        readEdn("\"test\"") shouldBe "test"
+        readEdn("\"abcdefZZ\"") shouldBe "abcdefZZ"
+        readEdn("\"tests are good\"") shouldBe "tests are good"
+        readEdn("\"[]{}\"") shouldBe "[]{}"
+        shouldThrowExactly<RuntimeException> {
+          readEdn("\"sdfhsd")
+        }.message shouldBe "EOF while reading string"
+      }
+
+      "escape" {
+        readEdn("\"test\\ntest\"") shouldBe "test\ntest"
+        readEdn("\"test\\ttest\"") shouldBe "test\ttest"
+        readEdn("\"test\\rtest\"") shouldBe "test\rtest"
+        readEdn("\"test\\btest\"") shouldBe "test\btest"
+        readEdn("\"test\\ftest\"") shouldBe "test\u000ctest"
+        readEdn("\"sj\"ewr\"") shouldBe "sj"
+      }
+
+      "unicodes with exact length" {
+        readEdn("\"saef\\u000c\"") shouldBe "saef\u000c"
+        readEdn("\"saef\\u000A\"") shouldBe "saef\n"
+        readEdn("\"saef\\u0009\"") shouldBe "saef\t"
+
+        shouldThrowExactly<RuntimeException> {
+          readEdn("\"saef\\uh")
+        }.message shouldBe "Invalid unicode escape: \\uh"
+
+        shouldThrowExactly<IllegalArgumentException> {
+          readEdn("\"saef\\u0zzzz\"")
+        }.message shouldBe "Invalid digit: z"
+
+        shouldThrowExactly<IllegalArgumentException> {
+          readEdn("\"saef\\u0zzz\"")
+        }.message shouldBe "Invalid digit: z"
+
+        shouldThrowExactly<IllegalArgumentException> {
+          readEdn("\"saef\\u00 0A\"")
+        }.message shouldBe "Invalid character length: 2, should be: 4"
+
+        shouldThrowExactly<IllegalArgumentException> {
+          readEdn("\"saef\\u00]0A\"")
+        }.message shouldBe "Invalid character length: 2, should be: 4"
+
+        shouldThrowExactly<IllegalArgumentException> {
+          readEdn("\"saef\\u00")
+        }.message shouldBe "Invalid character length: 2, should be: 4"
+      }
+
+      "escape chars" {
+        readEdn("\"saef\\1000A\"") shouldBe "saef@0A"
+        readEdn("\"saef\\100\"") shouldBe "saef@"
+        readEdn("\"saef\\10 0\"") shouldBe "saef 0"
+
+        shouldThrowExactly<RuntimeException> {
+          readEdn("\"saef\\z000A\"")
+        }.message shouldBe "Unsupported escape character: \\z"
+
+        shouldThrowExactly<RuntimeException> {
+          readEdn("\"saef\\66666\"")
+        }.message shouldBe "Octal escape sequence must be in range [0, 255]."
+
+        shouldThrowExactly<IllegalArgumentException> {
+          readEdn("\"saef\\92z\"")
+        }.message shouldBe "Invalid digit: 9"
+      }
     }
   }
 })
