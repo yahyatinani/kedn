@@ -2,6 +2,7 @@ package com.github.whyrising.kedn.core
 
 import com.github.whyrising.kedn.core.NodeType.BigDecimal
 import com.github.whyrising.kedn.core.NodeType.BigInt
+import com.github.whyrising.kedn.core.NodeType.Keyword
 import com.github.whyrising.kedn.core.NodeType.Symbol
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
@@ -183,34 +184,40 @@ class CoreTest : FreeSpec({
       }
     }
 
-    "symbols" - {
-      "assertions" {
-        readEdn("-edn") shouldBe EdnNode("-edn", Symbol)
-        shouldThrowExactly<RuntimeException> {
-          readEdn("//abc")
-        }.message shouldBe "Invalid token: //abc"
+    "symbols" {
+      readEdn("-edn") shouldBe EdnNode("-edn", Symbol)
+      shouldThrowExactly<RuntimeException> {
+        readEdn("//abc")
+      }.message shouldBe "Invalid token: //abc"
 
-        readEdn("edn.test.bar.baz/abc") shouldBe EdnNode(
-          value = "edn.test.bar.baz/abc",
-          type = Symbol
-        )
+      readEdn("edn.test.bar.baz/abc") shouldBe EdnNode(
+        value = "edn.test.bar.baz/abc",
+        type = Symbol
+      )
 
-        shouldThrowExactly<RuntimeException> {
-          readEdn("::edn.test.bar.baz/abc")
-        }.message shouldBe "Invalid token: ::edn.test.bar.baz/abc"
+      shouldThrowExactly<RuntimeException> {
+        readEdn("::edn.test.bar.baz/abc")
+      }.message shouldBe "Invalid token: ::edn.test.bar.baz/abc"
 
-        shouldThrowExactly<RuntimeException> {
-          readEdn("edn.test.bar.baz:/abc")
-        }.message shouldBe "Invalid token: edn.test.bar.baz:/abc"
+      shouldThrowExactly<RuntimeException> {
+        readEdn("edn.test.bar.baz:/abc")
+      }.message shouldBe "Invalid token: edn.test.bar.baz:/abc"
 
-        shouldThrowExactly<RuntimeException> {
-          readEdn("edn.test.bar.baz/abc:")
-        }.message shouldBe "Invalid token: edn.test.bar.baz/abc:"
+      shouldThrowExactly<RuntimeException> {
+        readEdn("edn.test.bar.baz/abc:")
+      }.message shouldBe "Invalid token: edn.test.bar.baz/abc:"
 
-        shouldThrowExactly<RuntimeException> {
-          readEdn("edn.test.b::ar.baz/abc")
-        }.message shouldBe "Invalid token: edn.test.b::ar.baz/abc"
-      }
+      shouldThrowExactly<RuntimeException> {
+        readEdn("edn.test.b::ar.baz/abc")
+      }.message shouldBe "Invalid token: edn.test.b::ar.baz/abc"
+    }
+
+    "keywords" {
+      readEdn(":edn") shouldBe EdnNode("edn", Keyword)
+      readEdn(":edn.test.bar.baz/abc") shouldBe EdnNode(
+        value = "edn.test.bar.baz/abc",
+        type = Keyword
+      )
     }
   }
 })

@@ -249,8 +249,13 @@ fun matchSymbol(s: String): EdnNode? {
     s.indexOf("::") != -1
   ) return null
 
-  val sym = EdnNode(s, NodeType.Symbol)
-  return sym
+  val isKeyword = s.startsWith(':')
+  val nsname = s.substring(if (isKeyword) 1 else 0)
+
+  return when {
+    isKeyword -> EdnNode(nsname, NodeType.Keyword)
+    else -> EdnNode(nsname, NodeType.Symbol)
+  }
 }
 
 internal fun interpretToken(s: String): Any? {
