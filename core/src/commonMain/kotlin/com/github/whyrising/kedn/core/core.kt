@@ -24,6 +24,8 @@ private val floatRegex =
 
 private val ratioRegex = Regex("([-+]?[0-9]+)/([0-9]+)")
 
+private val symbolRegex = Regex("[:]?([\\D&&[^/]].*/)?(/|[\\D&&[^/]][^/]*)")
+
 internal object EdnReader {
   val macros = arrayOfNulls<MacroFn?>(256)
   private val placeholder: MacroFn = { _, _ -> }
@@ -236,6 +238,21 @@ internal fun readToken(ch0: Char, iterator: SequenceIterator<Char>) =
     }
   }
 
+fun matchSymbol(s: String): EdnNode? {
+  val matchResult = symbolRegex.matchEntire(s) ?: return null
+
+  val ns = matchResult.groups[1]?.value
+  val name = matchResult.groups[2]?.value
+
+  if ((ns != null && ns.endsWith(":/")) ||
+    (name != null && name.endsWith(":")) ||
+    s.indexOf("::") != -1
+  ) return null
+
+  val sym = EdnNode(s, NodeType.Symbol)
+  return sym
+}
+
 internal fun interpretToken(s: String): Any? {
   when (s) {
     "nil" -> return null
@@ -243,8 +260,7 @@ internal fun interpretToken(s: String): Any? {
     "false" -> return false
   }
 
-  // TODO: 5/19/22 symbols
-  TODO()
+  return matchSymbol(s) ?: throw RuntimeException("Invalid token: $s")
 }
 
 fun read(seq: Sequence<Char>): Any? {
@@ -270,7 +286,7 @@ fun read(seq: Sequence<Char>): Any? {
         iterator.previous()
         return readNumber(ch, iterator)
       }
-      // TODO: 5/21/22 else
+      iterator.previous()
     }
 
     val t = readToken(ch, iterator)

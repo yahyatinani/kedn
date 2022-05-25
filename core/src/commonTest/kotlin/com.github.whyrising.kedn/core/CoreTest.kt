@@ -2,6 +2,7 @@ package com.github.whyrising.kedn.core
 
 import com.github.whyrising.kedn.core.NodeType.BigDecimal
 import com.github.whyrising.kedn.core.NodeType.BigInt
+import com.github.whyrising.kedn.core.NodeType.Symbol
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
@@ -179,6 +180,36 @@ class CoreTest : FreeSpec({
         shouldThrowExactly<IllegalArgumentException> {
           readEdn("\"saef\\92z\"")
         }.message shouldBe "Invalid digit: 9"
+      }
+    }
+
+    "symbols" - {
+      "assertions" {
+        readEdn("-edn") shouldBe EdnNode("-edn", Symbol)
+        shouldThrowExactly<RuntimeException> {
+          readEdn("//abc")
+        }.message shouldBe "Invalid token: //abc"
+
+        readEdn("edn.test.bar.baz/abc") shouldBe EdnNode(
+          value = "edn.test.bar.baz/abc",
+          type = Symbol
+        )
+
+        shouldThrowExactly<RuntimeException> {
+          readEdn("::edn.test.bar.baz/abc")
+        }.message shouldBe "Invalid token: ::edn.test.bar.baz/abc"
+
+        shouldThrowExactly<RuntimeException> {
+          readEdn("edn.test.bar.baz:/abc")
+        }.message shouldBe "Invalid token: edn.test.bar.baz:/abc"
+
+        shouldThrowExactly<RuntimeException> {
+          readEdn("edn.test.bar.baz/abc:")
+        }.message shouldBe "Invalid token: edn.test.bar.baz/abc:"
+
+        shouldThrowExactly<RuntimeException> {
+          readEdn("edn.test.b::ar.baz/abc")
+        }.message shouldBe "Invalid token: edn.test.b::ar.baz/abc"
       }
     }
   }
