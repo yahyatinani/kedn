@@ -6,12 +6,12 @@ import com.github.whyrising.kedn.core.EdnReader.macros
 internal typealias MacroFn = (reader: CachedIterator<Char>, macro: Char) -> Any
 
 /* Built-in
-  nil       -> null
-  boolean   -> Boolean
-  integer   -> Long
-  floating  -> Double
+  nil       -> null x
+  boolean   -> Boolean x
+  integer   -> Long x
+  floating  -> Double x
   character -> Char
-  strings   -> String
+  strings   -> String x
  */
 
 private val intRegex = Regex(
@@ -85,7 +85,7 @@ internal object EdnReader {
     macros['{'.code] = placeholder
     macros['}'.code] = placeholder
     macros['\\'.code] = placeholder
-//    macros['#'.code] = any
+    macros['#'.code] = placeholder
   }
 
   private fun readUnicodeChar(
@@ -219,18 +219,14 @@ internal fun readNumber(ch0: Char, iterator: SequenceIterator<Char>): Any {
     ?: throw NumberFormatException("Invalid number: $s")
 }
 
-// TODO: 5/19/22 test with # and ' when symbols available
-private fun isTerminatingMacro(ch: Int) = isMacro(ch)
-
-internal fun invalidTokenChar(c: Char): Boolean =
-  isWhitespace(c) || isTerminatingMacro(c.code)
+private fun isTerminatingMacro(ch: Char) = ch != '#' && isMacro(ch.code)
 
 internal fun readToken(ch0: Char, iterator: SequenceIterator<Char>) =
   buildString {
     append(ch0)
     while (iterator.hasNext()) {
       val ch = iterator.next()
-      if (invalidTokenChar(ch)) {
+      if (isWhitespace(ch) || isTerminatingMacro(ch)) {
 //        iterator.previous()
         return@buildString
       }
@@ -294,9 +290,7 @@ fun read(seq: Sequence<Char>): Any? {
       iterator.previous()
     }
 
-    val t = readToken(ch, iterator)
-
-    return interpretToken(t)
+    return interpretToken(readToken(ch, iterator))
   }
 }
 

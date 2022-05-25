@@ -186,6 +186,7 @@ class CoreTest : FreeSpec({
 
     "symbols" {
       readEdn("-edn") shouldBe EdnNode("-edn", Symbol)
+      readEdn("ed#n") shouldBe EdnNode("ed#n", Symbol)
       shouldThrowExactly<RuntimeException> {
         readEdn("//abc")
       }.message shouldBe "Invalid token: //abc"
