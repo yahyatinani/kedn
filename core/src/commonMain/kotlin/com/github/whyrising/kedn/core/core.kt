@@ -73,7 +73,7 @@ internal object EdnReader {
       }
     }
   }
-  private val charcterReaderFn: MacroFn = { reader, backslash ->
+  private val charcterReaderFn: MacroFn = { reader, _ ->
     if (!reader.hasNext())
       throw RuntimeException("EOF while reading character")
 
@@ -87,6 +87,18 @@ internal object EdnReader {
       token == "backspace" -> '\b'
       token == "formfeed" -> '\u000c'
       token == "return" -> '\r'
+      token.startsWith("o") -> {
+        val len = token.length - 1
+        if (len > 3)
+          throw RuntimeException("Invalid octal escape sequence length: $len")
+
+        val uc = readUnicodeChar(token, offset = 1, length = len, base = 8)
+        if (uc > 255)
+          throw RuntimeException(
+            "Octal escape sequence must be in range [0, 255]."
+          )
+        uc.toChar()
+      }
       else -> throw RuntimeException("Unsupported character: \\$token")
     }
   }
@@ -103,6 +115,24 @@ internal object EdnReader {
     macros['}'.code] = placeholder
     macros['\\'.code] = charcterReaderFn
     macros['#'.code] = placeholder
+  }
+
+  private fun readUnicodeChar(
+    token: String,
+    offset: Int,
+    length: Int,
+    base: Int
+  ): Int {
+    // TODO: 5/26/22 token.length > offset + length
+    var uc = 0
+    var i = offset
+    while (i < offset + length) {
+      val d = token[i].digitToIntOrNull(base)
+        ?: throw IllegalArgumentException("Invalid digit: ${token[i]}")
+      uc = uc * base + d
+      i++
+    }
+    return uc
   }
 
   private fun readUnicodeChar(

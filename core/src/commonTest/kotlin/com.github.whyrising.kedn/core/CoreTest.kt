@@ -236,6 +236,19 @@ class CoreTest : FreeSpec({
       readEdn("\\backspace") shouldBe '\b'
       readEdn("\\formfeed") shouldBe '\u000c'
       readEdn("\\return") shouldBe '\r'
+
+      shouldThrowExactly<RuntimeException> {
+        readEdn("\\o344324")
+      }.message shouldBe "Invalid octal escape sequence length: 6"
+      shouldThrowExactly<RuntimeException> {
+        readEdn("\\o666")
+      }.message shouldBe "Octal escape sequence must be in range [0, 255]."
+
+      readEdn("\\o344") shouldBe 'ä'
+
+      shouldThrowExactly<IllegalArgumentException> {
+        readEdn("\\o999")
+      }.message shouldBe "Invalid digit: 9"
     }
   }
 })
