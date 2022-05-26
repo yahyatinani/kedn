@@ -262,5 +262,14 @@ class CoreTest : FreeSpec({
         readEdn("\\uDFFF")
       }.message shouldBe "Invalid character constant: \\udfff"
     }
+
+    "comments" {
+      shouldThrowExactly<RuntimeException> {
+        readEdn(";this is a comment.")
+      }.message shouldBe "EOF while reading"
+
+      readEdn(";this is a comment.\n23") shouldBe 23L
+      readEdn(";this is a comment.\r23") shouldBe 23L
+    }
   }
 })
