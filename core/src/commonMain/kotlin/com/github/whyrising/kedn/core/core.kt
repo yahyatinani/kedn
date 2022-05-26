@@ -111,10 +111,20 @@ internal object EdnReader {
       else -> throw RuntimeException("Unsupported character: \\$token")
     }
   }
+  private val commentReaderFn: MacroFn = { reader, _ ->
+    while (reader.hasNext()) {
+      val ch = reader.next()
+      when {
+        ch != '\n' && ch != '\r' -> continue
+        else -> break
+      }
+    }
+    reader
+  }
 
   init {
     macros['"'.code] = stringReaderFn
-    macros[';'.code] = placeholder
+    macros[';'.code] = commentReaderFn
     macros['^'.code] = placeholder
     macros['('.code] = placeholder
     macros[')'.code] = placeholder
@@ -324,8 +334,10 @@ internal fun interpretToken(s: String): Any? {
 fun read(seq: Sequence<Char>): Any? {
   val iterator = SequenceIterator(seq.iterator())
   while (true) {
-    val ch = iterator.next()
+    if (!iterator.hasNext())
+      throw RuntimeException("EOF while reading")
 
+    val ch = iterator.next()
     if (isWhitespace(ch))
       continue
 
@@ -335,7 +347,8 @@ fun read(seq: Sequence<Char>): Any? {
     val macroFn: MacroFn? = macroFn(ch)
     if (macroFn != null) {
       val ret = macroFn(iterator, ch)
-      // TODO: 5/26/22 skip when ReaderMacro
+      if (ret === iterator)
+        continue
       return ret
     }
 
