@@ -87,6 +87,15 @@ internal object EdnReader {
       token == "backspace" -> '\b'
       token == "formfeed" -> '\u000c'
       token == "return" -> '\r'
+      token.startsWith("u") -> {
+        val uc = readUnicodeChar(token, 1, 4, 16)
+        val c = uc.toChar()
+        if (c in '\ud800'..'\uDFFF')
+          throw RuntimeException(
+            "Invalid character constant: \\u${uc.toString(16)}"
+          )
+        c
+      }
       token.startsWith("o") -> {
         val len = token.length - 1
         if (len > 3)
@@ -123,7 +132,8 @@ internal object EdnReader {
     length: Int,
     base: Int
   ): Int {
-    // TODO: 5/26/22 token.length > offset + length
+    if (token.length != offset + length)
+      throw IllegalArgumentException("Invalid unicode character: \\$token")
     var uc = 0
     var i = offset
     while (i < offset + length) {
