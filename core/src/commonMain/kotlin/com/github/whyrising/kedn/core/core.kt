@@ -87,7 +87,7 @@ internal object EdnReader {
       token == "backspace" -> '\b'
       token == "formfeed" -> '\u000c'
       token == "return" -> '\r'
-      else -> TODO()
+      else -> throw RuntimeException("Unsupported character: \\$token")
     }
   }
 

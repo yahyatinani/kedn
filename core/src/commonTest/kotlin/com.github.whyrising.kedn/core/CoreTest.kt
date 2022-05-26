@@ -224,6 +224,8 @@ class CoreTest : FreeSpec({
     "characters" - {
       shouldThrowExactly<RuntimeException> { readEdn("\\") }
         .message shouldBe "EOF while reading character"
+      shouldThrowExactly<RuntimeException> { readEdn("\\dsfs") }
+        .message shouldBe "Unsupported character: \\dsfs"
 
       readEdn("\\n") shouldBe 'n'
       readEdn("\\z") shouldBe 'z'
