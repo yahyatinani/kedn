@@ -220,5 +220,47 @@ class CoreTest : FreeSpec({
         type = Keyword
       )
     }
+
+    "characters" - {
+      shouldThrowExactly<RuntimeException> { readEdn("\\") }
+        .message shouldBe "EOF while reading character"
+      shouldThrowExactly<RuntimeException> { readEdn("\\dsfs") }
+        .message shouldBe "Unsupported character: \\dsfs"
+
+      readEdn("\\n") shouldBe 'n'
+      readEdn("\\z") shouldBe 'z'
+      readEdn("\\\\") shouldBe '\\'
+      readEdn("\\newline") shouldBe '\n'
+      readEdn("\\space") shouldBe ' '
+      readEdn("\\tab") shouldBe '\t'
+      readEdn("\\backspace") shouldBe '\b'
+      readEdn("\\formfeed") shouldBe '\u000c'
+      readEdn("\\return") shouldBe '\r'
+
+      shouldThrowExactly<RuntimeException> {
+        readEdn("\\o344324")
+      }.message shouldBe "Invalid octal escape sequence length: 6"
+      shouldThrowExactly<RuntimeException> {
+        readEdn("\\o666")
+      }.message shouldBe "Octal escape sequence must be in range [0, 255]."
+      readEdn("\\o344") shouldBe 'ä'
+      shouldThrowExactly<IllegalArgumentException> {
+        readEdn("\\o999")
+      }.message shouldBe "Invalid digit: 9"
+
+      shouldThrowExactly<IllegalArgumentException> {
+        readEdn("\\u999")
+      }.message shouldBe "Invalid unicode character: \\u999"
+
+      shouldThrowExactly<RuntimeException> {
+        readEdn("\\uD800")
+      }.message shouldBe "Invalid character constant: \\ud800"
+
+      readEdn("\\uEFFF") shouldBe ''
+
+      shouldThrowExactly<RuntimeException> {
+        readEdn("\\uDFFF")
+      }.message shouldBe "Invalid character constant: \\udfff"
+    }
   }
 })

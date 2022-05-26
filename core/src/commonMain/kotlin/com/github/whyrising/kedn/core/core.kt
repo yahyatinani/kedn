@@ -3,7 +3,7 @@ package com.github.whyrising.kedn.core
 import com.github.whyrising.kedn.core.EdnReader.macroFn
 import com.github.whyrising.kedn.core.EdnReader.macros
 
-internal typealias MacroFn = (reader: CachedIterator<Char>, macro: Char) -> Any
+internal typealias MacroFn = (reader: SequenceIterator<Char>, Char) -> Any
 
 /* Built-in
   nil       -> null x
@@ -73,6 +73,44 @@ internal object EdnReader {
       }
     }
   }
+  private val charcterReaderFn: MacroFn = { reader, _ ->
+    if (!reader.hasNext())
+      throw RuntimeException("EOF while reading character")
+
+    val ch = reader.next()
+    val token = readToken(ch, reader)
+    when {
+      token.length == 1 -> token[0]
+      token == "newline" -> '\n'
+      token == "space" -> ' '
+      token == "tab" -> '\t'
+      token == "backspace" -> '\b'
+      token == "formfeed" -> '\u000c'
+      token == "return" -> '\r'
+      token.startsWith("u") -> {
+        val uc = readUnicodeChar(token, 1, 4, 16)
+        val c = uc.toChar()
+        if (c in '\ud800'..'\uDFFF')
+          throw RuntimeException(
+            "Invalid character constant: \\u${uc.toString(16)}"
+          )
+        c
+      }
+      token.startsWith("o") -> {
+        val len = token.length - 1
+        if (len > 3)
+          throw RuntimeException("Invalid octal escape sequence length: $len")
+
+        val uc = readUnicodeChar(token, offset = 1, length = len, base = 8)
+        if (uc > 255)
+          throw RuntimeException(
+            "Octal escape sequence must be in range [0, 255]."
+          )
+        uc.toChar()
+      }
+      else -> throw RuntimeException("Unsupported character: \\$token")
+    }
+  }
 
   init {
     macros['"'.code] = stringReaderFn
@@ -84,8 +122,27 @@ internal object EdnReader {
     macros[']'.code] = placeholder
     macros['{'.code] = placeholder
     macros['}'.code] = placeholder
-    macros['\\'.code] = placeholder
+    macros['\\'.code] = charcterReaderFn
     macros['#'.code] = placeholder
+  }
+
+  private fun readUnicodeChar(
+    token: String,
+    offset: Int,
+    length: Int,
+    base: Int
+  ): Int {
+    if (token.length != offset + length)
+      throw IllegalArgumentException("Invalid unicode character: \\$token")
+    var uc = 0
+    var i = offset
+    while (i < offset + length) {
+      val d = token[i].digitToIntOrNull(base)
+        ?: throw IllegalArgumentException("Invalid digit: ${token[i]}")
+      uc = uc * base + d
+      i++
+    }
+    return uc
   }
 
   private fun readUnicodeChar(
@@ -116,7 +173,7 @@ internal object EdnReader {
     return uc.toChar()
   }
 
-  fun macroFn(ch: Char): ((CachedIterator<Char>, Char) -> Any)? =
+  fun macroFn(ch: Char): ((SequenceIterator<Char>, Char) -> Any)? =
     macros[ch.code]
 }
 
@@ -278,6 +335,7 @@ fun read(seq: Sequence<Char>): Any? {
     val macroFn: MacroFn? = macroFn(ch)
     if (macroFn != null) {
       val ret = macroFn(iterator, ch)
+      // TODO: 5/26/22 skip when ReaderMacro
       return ret
     }
 
