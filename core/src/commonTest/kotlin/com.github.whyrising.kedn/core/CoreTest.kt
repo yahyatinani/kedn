@@ -220,5 +220,20 @@ class CoreTest : FreeSpec({
         type = Keyword
       )
     }
+
+    "characters" - {
+      shouldThrowExactly<RuntimeException> { readEdn("\\") }
+        .message shouldBe "EOF while reading character"
+
+      readEdn("\\n") shouldBe 'n'
+      readEdn("\\z") shouldBe 'z'
+      readEdn("\\\\") shouldBe '\\'
+      readEdn("\\newline") shouldBe '\n'
+      readEdn("\\space") shouldBe ' '
+      readEdn("\\tab") shouldBe '\t'
+      readEdn("\\backspace") shouldBe '\b'
+      readEdn("\\formfeed") shouldBe '\u000c'
+      readEdn("\\return") shouldBe '\r'
+    }
   }
 })

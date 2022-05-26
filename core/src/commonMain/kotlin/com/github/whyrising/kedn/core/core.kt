@@ -3,7 +3,7 @@ package com.github.whyrising.kedn.core
 import com.github.whyrising.kedn.core.EdnReader.macroFn
 import com.github.whyrising.kedn.core.EdnReader.macros
 
-internal typealias MacroFn = (reader: CachedIterator<Char>, macro: Char) -> Any
+internal typealias MacroFn = (reader: SequenceIterator<Char>, Char) -> Any
 
 /* Built-in
   nil       -> null x
@@ -73,6 +73,23 @@ internal object EdnReader {
       }
     }
   }
+  private val charcterReaderFn: MacroFn = { reader, backslash ->
+    if (!reader.hasNext())
+      throw RuntimeException("EOF while reading character")
+
+    val ch = reader.next()
+    val token = readToken(ch, reader)
+    when {
+      token.length == 1 -> token[0]
+      token == "newline" -> '\n'
+      token == "space" -> ' '
+      token == "tab" -> '\t'
+      token == "backspace" -> '\b'
+      token == "formfeed" -> '\u000c'
+      token == "return" -> '\r'
+      else -> TODO()
+    }
+  }
 
   init {
     macros['"'.code] = stringReaderFn
@@ -84,7 +101,7 @@ internal object EdnReader {
     macros[']'.code] = placeholder
     macros['{'.code] = placeholder
     macros['}'.code] = placeholder
-    macros['\\'.code] = placeholder
+    macros['\\'.code] = charcterReaderFn
     macros['#'.code] = placeholder
   }
 
@@ -116,7 +133,7 @@ internal object EdnReader {
     return uc.toChar()
   }
 
-  fun macroFn(ch: Char): ((CachedIterator<Char>, Char) -> Any)? =
+  fun macroFn(ch: Char): ((SequenceIterator<Char>, Char) -> Any)? =
     macros[ch.code]
 }
 
@@ -278,6 +295,7 @@ fun read(seq: Sequence<Char>): Any? {
     val macroFn: MacroFn? = macroFn(ch)
     if (macroFn != null) {
       val ret = macroFn(iterator, ch)
+      // TODO: 5/26/22 skip when ReaderMacro
       return ret
     }
 
