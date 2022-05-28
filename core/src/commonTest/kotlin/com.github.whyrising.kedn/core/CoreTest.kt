@@ -4,6 +4,8 @@ import com.github.whyrising.kedn.core.NodeType.BigDecimal
 import com.github.whyrising.kedn.core.NodeType.BigInt
 import com.github.whyrising.kedn.core.NodeType.Keyword
 import com.github.whyrising.kedn.core.NodeType.Symbol
+import com.github.whyrising.y.collections.concretions.list.PersistentList
+import com.github.whyrising.y.l
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
@@ -270,6 +272,76 @@ class CoreTest : FreeSpec({
 
       readEdn(";this is a comment.\n23") shouldBe 23L
       readEdn(";this is a comment.\r23") shouldBe 23L
+    }
+
+    "lists (a b c d)" - {
+      "should return a PersistentList in the same order as in EDN" {
+        val list = readEdn("(2  343 nil 432)") as PersistentList<Any?>
+
+        list[0] shouldBe 2L
+        list[1] shouldBe 343L
+        list[2] shouldBe null
+        list[3] shouldBe 432L
+      }
+
+      "when there is no delim ')' throw an exception" {
+        shouldThrowExactly<RuntimeException> {
+          readEdn("(2 343 023 nil 432")
+        }.message shouldBe "EOF while reading"
+      }
+
+      "multiple lines" {
+        readEdn("(2  343\n nil \n432\n)") shouldBe l(2L, 343L, null, 432L)
+        readEdn(
+          """
+          (2
+          343
+          nil
+          432)
+        """
+        ) shouldBe l(2L, 343L, null, 432L)
+      }
+
+      "nested lists" {
+        readEdn("(2  343 (2 3 nil 9) 432)") shouldBe l(
+          2L,
+          343L,
+          l(2L, 3L, null, 9L),
+          432L
+        )
+
+        readEdn("(2 (1 2) (3 (1 1)) 4)") shouldBe l(
+          2L,
+          l(1L, 2L),
+          l(3L, l(1L, 1L)),
+          4L
+        )
+      }
+
+      "list with comments" {
+        readEdn(
+          """
+                    ; list
+          (2
+          ; comment
+          343
+                    ; comment
+          nil
+                    ; comment
+          432)
+                    ; comment
+        """
+        ) shouldBe l(2L, 343L, null, 432L)
+      }
+
+      "Unmatched delimiter exception" {
+        shouldThrowExactly<RuntimeException> {
+          readEdn("(2 3 43 3]")
+        }.message shouldBe "Unmatched delimiter: ]"
+        shouldThrowExactly<RuntimeException> {
+          readEdn("(2 3 43 3}")
+        }.message shouldBe "Unmatched delimiter: }"
+      }
     }
   }
 })

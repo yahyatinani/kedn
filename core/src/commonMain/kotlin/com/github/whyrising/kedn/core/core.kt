@@ -2,6 +2,8 @@ package com.github.whyrising.kedn.core
 
 import com.github.whyrising.kedn.core.EdnReader.macroFn
 import com.github.whyrising.kedn.core.EdnReader.macros
+import com.github.whyrising.y.collections.concretions.list.PersistentList
+import com.github.whyrising.y.l
 
 internal typealias MacroFn = (reader: SequenceIterator<Char>, Char) -> Any
 
@@ -25,6 +27,15 @@ private val floatRegex =
 private val ratioRegex = Regex("([-+]?[0-9]+)/([0-9]+)")
 
 private val symbolRegex = Regex("[:]?([\\D&&[^/]].*/)?(/|[\\D&&[^/]][^/]*)")
+
+private fun <E> persistentList(list: List<E>): PersistentList<E> {
+  val listIterator = list.listIterator(list.size)
+  var ret = l<E>()
+  while (listIterator.hasPrevious())
+    ret = ret.conj(listIterator.previous())
+
+  return ret
+}
 
 internal object EdnReader {
   val macros = arrayOfNulls<MacroFn?>(256)
@@ -73,7 +84,7 @@ internal object EdnReader {
       }
     }
   }
-  private val charcterReaderFn: MacroFn = { reader, _ ->
+  private val characterReaderFn: MacroFn = { reader, _ ->
     if (!reader.hasNext())
       throw RuntimeException("EOF while reading character")
 
@@ -121,19 +132,59 @@ internal object EdnReader {
     }
     reader
   }
+  private val listReaderFn: MacroFn = { reader, _ ->
+    val list = readDelimitedList(')', reader)
+    persistentList(list)
+  }
+  private val unmatchedDelimiterReaderFn: MacroFn = { _, closingDelim ->
+    throw RuntimeException("Unmatched delimiter: $closingDelim")
+  }
 
   init {
     macros['"'.code] = stringReaderFn
     macros[';'.code] = commentReaderFn
-    macros['^'.code] = placeholder
-    macros['('.code] = placeholder
+    macros['\\'.code] = characterReaderFn
+    macros['('.code] = listReaderFn
     macros[')'.code] = placeholder
     macros['['.code] = placeholder
-    macros[']'.code] = placeholder
+    macros[']'.code] = unmatchedDelimiterReaderFn
     macros['{'.code] = placeholder
-    macros['}'.code] = placeholder
-    macros['\\'.code] = charcterReaderFn
+    macros['}'.code] = unmatchedDelimiterReaderFn
+    macros['^'.code] = placeholder
     macros['#'.code] = placeholder
+  }
+
+  private fun readDelimitedList(
+    delim: Char,
+    reader: SequenceIterator<Char>
+  ): List<Any?> {
+    val a = arrayListOf<Any?>()
+    while (true) {
+      if (!reader.hasNext())
+        throw RuntimeException("EOF while reading")
+
+      var ch = reader.next()
+      while (isWhitespace(ch))
+        ch = reader.next()
+
+      if (ch == delim)
+        break
+
+      // TODO: 5/28/22 review
+//      val macroFn: MacroFn? = macroFn(ch)
+//      if (macroFn != null) {
+//        val ret = macroFn(reader, ch)
+//        if (ret != reader)
+//          a.add(ret)
+//      } else {
+//        reader.previous()
+//        val o = read(reader)
+//        a.add(o)
+//      }
+      reader.previous()
+      a.add(read(reader))
+    }
+    return a
   }
 
   private fun readUnicodeChar(
@@ -331,8 +382,7 @@ internal fun interpretToken(s: String): Any? {
   return matchSymbol(s) ?: throw RuntimeException("Invalid token: $s")
 }
 
-fun read(seq: Sequence<Char>): Any? {
-  val iterator = SequenceIterator(seq.iterator())
+internal fun read(iterator: SequenceIterator<Char>): Any? {
   while (true) {
     if (!iterator.hasNext())
       throw RuntimeException("EOF while reading")
@@ -364,5 +414,7 @@ fun read(seq: Sequence<Char>): Any? {
     return interpretToken(readToken(ch, iterator))
   }
 }
+
+fun read(seq: Sequence<Char>) = read(SequenceIterator(seq.iterator()))
 
 fun readEdn(edn: String): Any? = read(edn.asSequence())
