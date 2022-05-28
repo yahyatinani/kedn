@@ -9,8 +9,6 @@ import com.github.whyrising.y.l
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
-import io.kotest.matchers.types.shouldBeTypeOf
 
 class CoreTest : FreeSpec({
   "readEdn(edn)" - {
@@ -296,7 +294,7 @@ class CoreTest : FreeSpec({
         readEdn("(2  343\n nil \n432\n)") shouldBe l(2L, 343L, null, 432L)
         readEdn(
           """
-          (2 
+          (2
           343
           nil
           432)
@@ -324,7 +322,7 @@ class CoreTest : FreeSpec({
         readEdn(
           """
                     ; list
-          (2 
+          (2
           ; comment
           343
                     ; comment
