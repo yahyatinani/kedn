@@ -4,6 +4,7 @@ import com.github.whyrising.kedn.core.EdnReader.macroFn
 import com.github.whyrising.kedn.core.EdnReader.macros
 import com.github.whyrising.y.collections.concretions.list.PersistentList
 import com.github.whyrising.y.l
+import com.github.whyrising.y.vec
 
 internal typealias MacroFn = (reader: SequenceIterator<Char>, Char) -> Any
 
@@ -136,6 +137,9 @@ internal object EdnReader {
     val list = readDelimitedList(')', reader)
     persistentList(list)
   }
+  private val vectorReaderFn: MacroFn = { reader, _ ->
+    vec(readDelimitedList(']', reader))
+  }
   private val unmatchedDelimiterReaderFn: MacroFn = { _, closingDelim ->
     throw RuntimeException("Unmatched delimiter: $closingDelim")
   }
@@ -145,8 +149,8 @@ internal object EdnReader {
     macros[';'.code] = commentReaderFn
     macros['\\'.code] = characterReaderFn
     macros['('.code] = listReaderFn
-    macros[')'.code] = placeholder
-    macros['['.code] = placeholder
+    macros[')'.code] = unmatchedDelimiterReaderFn
+    macros['['.code] = vectorReaderFn
     macros[']'.code] = unmatchedDelimiterReaderFn
     macros['{'.code] = placeholder
     macros['}'.code] = unmatchedDelimiterReaderFn

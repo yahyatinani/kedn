@@ -5,7 +5,9 @@ import com.github.whyrising.kedn.core.NodeType.BigInt
 import com.github.whyrising.kedn.core.NodeType.Keyword
 import com.github.whyrising.kedn.core.NodeType.Symbol
 import com.github.whyrising.y.collections.concretions.list.PersistentList
+import com.github.whyrising.y.collections.concretions.vector.PersistentVector
 import com.github.whyrising.y.l
+import com.github.whyrising.y.v
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
@@ -341,6 +343,62 @@ class CoreTest : FreeSpec({
         shouldThrowExactly<RuntimeException> {
           readEdn("(2 3 43 3}")
         }.message shouldBe "Unmatched delimiter: }"
+      }
+    }
+
+    "vector [a b c]" - {
+      "should return a persistent vector in the same given order" {
+        val v = readEdn("[1 2 3]") as PersistentVector<*>
+
+        v[0] shouldBe 1L
+        v[1] shouldBe 2L
+        v[2] shouldBe 3L
+      }
+
+      "when there is no delim ')' throw an exception" {
+        shouldThrowExactly<RuntimeException> {
+          readEdn("[1 2 3")
+        }.message shouldBe "EOF while reading"
+      }
+
+      "multiple lines" {
+        readEdn("[2  343\n nil \n432\n]") as PersistentVector<*> shouldBe
+          v(2L, 343L, null, 432L)
+        readEdn(
+          """
+          [2
+          343
+          nil
+          432]
+        """
+        ) as PersistentVector<*> shouldBe v(2L, 343L, null, 432L)
+      }
+
+      "nested vectors" {
+        readEdn("[1 [2 3] 4 [5 8]]") as PersistentVector<*> shouldBe
+          v(1L, v(2L, 3L), 4L, v(5L, 8L))
+      }
+
+      "list with comments" {
+        readEdn(
+          """
+                    ; vector
+          [2
+          ; comment
+          343
+                    ; comment
+          nil
+                    ; comment
+          432]
+                    ; comment
+        """
+        ) as PersistentVector<*> shouldBe v(2L, 343L, null, 432L)
+      }
+
+      "Unmatched delimiter exception" {
+        shouldThrowExactly<RuntimeException> {
+          readEdn("[2 3 43 3)")
+        }.message shouldBe "Unmatched delimiter: )"
       }
     }
   }
