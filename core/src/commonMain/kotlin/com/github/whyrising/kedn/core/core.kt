@@ -136,6 +136,9 @@ internal object EdnReader {
     val list = readDelimitedList(')', reader)
     persistentList(list)
   }
+  private val unmatchedDelimiterReaderFn: MacroFn = { _, closingDelim ->
+    throw RuntimeException("Unmatched delimiter: $closingDelim")
+  }
 
   init {
     macros['"'.code] = stringReaderFn
@@ -144,9 +147,9 @@ internal object EdnReader {
     macros['('.code] = listReaderFn
     macros[')'.code] = placeholder
     macros['['.code] = placeholder
-    macros[']'.code] = placeholder
+    macros[']'.code] = unmatchedDelimiterReaderFn
     macros['{'.code] = placeholder
-    macros['}'.code] = placeholder
+    macros['}'.code] = unmatchedDelimiterReaderFn
     macros['^'.code] = placeholder
     macros['#'.code] = placeholder
   }

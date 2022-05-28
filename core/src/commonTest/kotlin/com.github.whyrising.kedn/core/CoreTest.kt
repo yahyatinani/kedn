@@ -333,6 +333,15 @@ class CoreTest : FreeSpec({
         """
         ) shouldBe l(2L, 343L, null, 432L)
       }
+
+      "Unmatched delimiter exception" {
+        shouldThrowExactly<RuntimeException> {
+          readEdn("(2 3 43 3]")
+        }.message shouldBe "Unmatched delimiter: ]"
+        shouldThrowExactly<RuntimeException> {
+          readEdn("(2 3 43 3}")
+        }.message shouldBe "Unmatched delimiter: }"
+      }
     }
   }
 })
