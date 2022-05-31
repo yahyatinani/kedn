@@ -3,7 +3,6 @@ package com.github.whyrising.kedn.core
 enum class NodeType {
   BigInt,
   BigDecimal,
-  Symbol,
   Keyword
 }
 
