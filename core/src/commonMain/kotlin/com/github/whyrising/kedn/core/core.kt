@@ -3,6 +3,7 @@ package com.github.whyrising.kedn.core
 import com.github.whyrising.kedn.core.EdnReader.macroFn
 import com.github.whyrising.kedn.core.EdnReader.macros
 import com.github.whyrising.y.core.Symbol
+import com.github.whyrising.y.core.hashSet
 import com.github.whyrising.y.core.toPlist
 import com.github.whyrising.y.core.util.m
 import com.github.whyrising.y.core.vec
@@ -32,6 +33,7 @@ private val symbolRegex = Regex("[:]?([\\D&&[^/]].*/)?(/|[\\D&&[^/]][^/]*)")
 
 internal object EdnReader {
   val macros = arrayOfNulls<MacroFn?>(256)
+  val dispatchMacros = arrayOfNulls<MacroFn?>(256)
   private val placeholder: MacroFn = { _, _ -> }
   private val stringReaderFn: MacroFn = { reader, _ ->
     buildString {
@@ -140,6 +142,26 @@ internal object EdnReader {
       throw RuntimeException("Map literal must contain an even number of forms")
     m<Any?, Any?>(*a)
   }
+  private val dispatchReader: MacroFn = { reader, c ->
+    if (!reader.hasNext())
+      throw RuntimeException("EOF while reading character")
+
+    val ch = reader.next()
+    val fn = dispatchMacros[ch.code]
+
+    if (fn == null) {
+      if (!ch.isLetter())
+        throw RuntimeException("No dispatch macro for: $ch")
+
+      TODO("Tagged reader")
+    }
+
+    fn(reader, ch)
+  }
+
+  private val setReader: MacroFn = { reader, _ ->
+    hashSet(*readDelimitedList('}', reader).toTypedArray())
+  }
 
   init {
     macros['"'.code] = stringReaderFn
@@ -151,8 +173,10 @@ internal object EdnReader {
     macros[']'.code] = unmatchedDelimiterReaderFn
     macros['{'.code] = mapReader
     macros['}'.code] = unmatchedDelimiterReaderFn
+    macros['#'.code] = dispatchReader
     macros['^'.code] = placeholder
-    macros['#'.code] = placeholder
+
+    dispatchMacros['{'.code] = setReader
   }
 
   private fun readDelimitedList(

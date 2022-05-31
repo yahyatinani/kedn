@@ -4,8 +4,10 @@ import com.github.whyrising.kedn.core.NodeType.BigDecimal
 import com.github.whyrising.kedn.core.NodeType.BigInt
 import com.github.whyrising.kedn.core.NodeType.Keyword
 import com.github.whyrising.y.core.Symbol
+import com.github.whyrising.y.core.collections.PersistentHashSet
 import com.github.whyrising.y.core.collections.PersistentList
 import com.github.whyrising.y.core.collections.PersistentVector
+import com.github.whyrising.y.core.hashSet
 import com.github.whyrising.y.core.l
 import com.github.whyrising.y.core.m
 import com.github.whyrising.y.core.v
@@ -411,6 +413,19 @@ class CoreTest : FreeSpec({
       shouldThrowExactly<RuntimeException> {
         readEdn("{a 1, b}")
       }.message shouldBe "Map literal must contain an even number of forms"
+    }
+
+    "hashsets" {
+      readEdn("#{1 2 3 4}") as PersistentHashSet<*> shouldBe
+        hashSet(1L, 2L, 3L, 4L)
+
+      shouldThrowExactly<RuntimeException> {
+        readEdn("#")
+      }.message shouldBe "EOF while reading character"
+
+      shouldThrowExactly<RuntimeException> {
+        readEdn("#4")
+      }.message shouldBe "No dispatch macro for: 4"
     }
   }
 })
