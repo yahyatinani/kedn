@@ -3,7 +3,7 @@ package com.github.whyrising.kedn.core
 import com.github.whyrising.kedn.core.NodeType.BigDecimal
 import com.github.whyrising.kedn.core.NodeType.BigInt
 import com.github.whyrising.kedn.core.NodeType.Keyword
-import com.github.whyrising.kedn.core.NodeType.Symbol
+import com.github.whyrising.y.core.Symbol
 import com.github.whyrising.y.core.collections.PersistentList
 import com.github.whyrising.y.core.collections.PersistentVector
 import com.github.whyrising.y.core.l
@@ -190,15 +190,14 @@ class CoreTest : FreeSpec({
     }
 
     "symbols" {
-      readEdn("-edn") shouldBe EdnNode("-edn", Symbol)
-      readEdn("ed#n") shouldBe EdnNode("ed#n", Symbol)
+      readEdn("-edn") shouldBe Symbol("-edn")
+      readEdn("ed#n") shouldBe Symbol("ed#n")
       shouldThrowExactly<RuntimeException> {
         readEdn("//abc")
       }.message shouldBe "Invalid token: //abc"
 
-      readEdn("edn.test.bar.baz/abc") shouldBe EdnNode(
-        value = "edn.test.bar.baz/abc",
-        type = Symbol
+      readEdn("edn.test.bar.baz/abc") shouldBe Symbol(
+        "edn.test.bar.baz/abc"
       )
 
       shouldThrowExactly<RuntimeException> {
@@ -405,8 +404,8 @@ class CoreTest : FreeSpec({
 
     "maps {a 1, 2 b}" {
       readEdn("{a 1, b 2}") shouldBe m(
-        EdnNode("a", Symbol) to 1,
-        EdnNode("b", Symbol) to 2,
+        Symbol("a") to 1,
+        Symbol("b") to 2,
       )
 
       shouldThrowExactly<RuntimeException> {

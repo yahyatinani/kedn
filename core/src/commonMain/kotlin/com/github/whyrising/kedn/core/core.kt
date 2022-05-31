@@ -2,6 +2,7 @@ package com.github.whyrising.kedn.core
 
 import com.github.whyrising.kedn.core.EdnReader.macroFn
 import com.github.whyrising.kedn.core.EdnReader.macros
+import com.github.whyrising.y.core.Symbol
 import com.github.whyrising.y.core.toPlist
 import com.github.whyrising.y.core.util.m
 import com.github.whyrising.y.core.vec
@@ -352,7 +353,7 @@ internal fun readToken(ch0: Char, iterator: SequenceIterator<Char>) =
     }
   }
 
-fun matchSymbol(s: String): EdnNode? {
+fun matchSymbol(s: String): Any? {
   val matchResult = symbolRegex.matchEntire(s) ?: return null
 
   val ns = matchResult.groups[1]?.value
@@ -368,7 +369,7 @@ fun matchSymbol(s: String): EdnNode? {
 
   return when {
     isKeyword -> EdnNode(nsname, NodeType.Keyword)
-    else -> EdnNode(nsname, NodeType.Symbol)
+    else -> Symbol(nsname)
   }
 }
 
