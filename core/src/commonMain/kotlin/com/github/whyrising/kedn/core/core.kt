@@ -2,9 +2,9 @@ package com.github.whyrising.kedn.core
 
 import com.github.whyrising.kedn.core.EdnReader.macroFn
 import com.github.whyrising.kedn.core.EdnReader.macros
-import com.github.whyrising.y.collections.concretions.list.PersistentList
-import com.github.whyrising.y.l
-import com.github.whyrising.y.vec
+import com.github.whyrising.y.core.toPlist
+import com.github.whyrising.y.core.util.m
+import com.github.whyrising.y.core.vec
 
 internal typealias MacroFn = (reader: SequenceIterator<Char>, Char) -> Any
 
@@ -28,15 +28,6 @@ private val floatRegex =
 private val ratioRegex = Regex("([-+]?[0-9]+)/([0-9]+)")
 
 private val symbolRegex = Regex("[:]?([\\D&&[^/]].*/)?(/|[\\D&&[^/]][^/]*)")
-
-private fun <E> persistentList(list: List<E>): PersistentList<E> {
-  val listIterator = list.listIterator(list.size)
-  var ret = l<E>()
-  while (listIterator.hasPrevious())
-    ret = ret.conj(listIterator.previous())
-
-  return ret
-}
 
 internal object EdnReader {
   val macros = arrayOfNulls<MacroFn?>(256)
@@ -134,14 +125,19 @@ internal object EdnReader {
     reader
   }
   private val listReaderFn: MacroFn = { reader, _ ->
-    val list = readDelimitedList(')', reader)
-    persistentList(list)
+    readDelimitedList(')', reader).toPlist()
   }
   private val vectorReaderFn: MacroFn = { reader, _ ->
     vec(readDelimitedList(']', reader))
   }
   private val unmatchedDelimiterReaderFn: MacroFn = { _, closingDelim ->
     throw RuntimeException("Unmatched delimiter: $closingDelim")
+  }
+  private val mapReader: MacroFn = { reader, _ ->
+    val a = readDelimitedList('}', reader).toTypedArray()
+    if ((a.size and 1) == 1)
+      throw RuntimeException("Map literal must contain an even number of forms")
+    m<Any?, Any?>(*a)
   }
 
   init {
@@ -152,7 +148,7 @@ internal object EdnReader {
     macros[')'.code] = unmatchedDelimiterReaderFn
     macros['['.code] = vectorReaderFn
     macros[']'.code] = unmatchedDelimiterReaderFn
-    macros['{'.code] = placeholder
+    macros['{'.code] = mapReader
     macros['}'.code] = unmatchedDelimiterReaderFn
     macros['^'.code] = placeholder
     macros['#'.code] = placeholder
@@ -349,7 +345,7 @@ internal fun readToken(ch0: Char, iterator: SequenceIterator<Char>) =
     while (iterator.hasNext()) {
       val ch = iterator.next()
       if (isWhitespace(ch) || isTerminatingMacro(ch)) {
-//        iterator.previous()
+        iterator.previous()
         return@buildString
       }
       append(ch)
