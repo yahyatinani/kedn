@@ -3,7 +3,7 @@ kotlin = "1.6.21"
 ktlint = "0.43.0"
 kover = "0.5.1"
 kotest = "5.3.0"
-ylib = "0.1.1"
+ylib = "0.2.0"
 
 [libraries]
 kotlin-test-common = { module = "org.jetbrains.kotlin:kotlin-test-common", version.ref = "kotlin" }

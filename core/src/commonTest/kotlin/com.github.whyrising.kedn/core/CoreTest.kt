@@ -4,10 +4,11 @@ import com.github.whyrising.kedn.core.NodeType.BigDecimal
 import com.github.whyrising.kedn.core.NodeType.BigInt
 import com.github.whyrising.kedn.core.NodeType.Keyword
 import com.github.whyrising.kedn.core.NodeType.Symbol
-import com.github.whyrising.y.collections.concretions.list.PersistentList
-import com.github.whyrising.y.collections.concretions.vector.PersistentVector
-import com.github.whyrising.y.l
-import com.github.whyrising.y.v
+import com.github.whyrising.y.core.collections.PersistentList
+import com.github.whyrising.y.core.collections.PersistentVector
+import com.github.whyrising.y.core.l
+import com.github.whyrising.y.core.m
+import com.github.whyrising.y.core.v
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
@@ -400,6 +401,17 @@ class CoreTest : FreeSpec({
           readEdn("[2 3 43 3)")
         }.message shouldBe "Unmatched delimiter: )"
       }
+    }
+
+    "maps {a 1, 2 b}" {
+      readEdn("{a 1, b 2}") shouldBe m(
+        EdnNode("a", Symbol) to 1,
+        EdnNode("b", Symbol) to 2,
+      )
+
+      shouldThrowExactly<RuntimeException> {
+        readEdn("{a 1, b}")
+      }.message shouldBe "Map literal must contain an even number of forms"
     }
   }
 })
