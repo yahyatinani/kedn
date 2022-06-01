@@ -1,5 +1,6 @@
 package com.github.whyrising.kedn.core
 
+import com.benasher44.uuid.uuidFrom
 import com.github.whyrising.kedn.core.EdnReader.macroFn
 import com.github.whyrising.kedn.core.EdnReader.macros
 import com.github.whyrising.y.core.Symbol
@@ -34,7 +35,8 @@ private val ratioRegex = Regex("([-+]?[0-9]+)/([0-9]+)")
 private val symbolRegex = Regex("[:]?([\\D&&[^/]].*/)?(/|[\\D&&[^/]][^/]*)")
 
 private val DEFAULT_DATA_READER = m<Any, Any>(
-  Symbol("inst"), { instant: Any -> (instant as String).toInstant() }
+  Symbol("inst"), { instant: Any -> (instant as String).toInstant() },
+  Symbol("uuid"), { instant: Any -> uuidFrom(instant as String) }
 )
 
 internal object EdnReader {
@@ -151,14 +153,11 @@ internal object EdnReader {
   private val taggedReader: MacroFn = { reader, _ ->
     val tag = read(reader)
 
-    if (tag !is Symbol) {
-      TODO()
-    }
+    if (tag !is Symbol)
+      throw RuntimeException("Reader tag must be a symbol")
 
     val dataReader = DEFAULT_DATA_READER[tag] as ((Any) -> Any)?
-
-    if (dataReader == null)
-      TODO()
+      ?: throw RuntimeException("No reader function for tag: $tag")
 
     val o = read(reader)
 

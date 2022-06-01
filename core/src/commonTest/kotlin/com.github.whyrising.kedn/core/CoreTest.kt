@@ -14,8 +14,6 @@ import com.github.whyrising.y.core.v
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.beUUID
-import kotlinx.datetime.toInstant
 
 class CoreTest : FreeSpec({
   "readEdn(edn)" - {

@@ -10,6 +10,7 @@ kotlin {
       dependencies {
         implementation deps.y.core
         implementation deps.kotlinx.datetime
+        implementation 'com.benasher44:uuid:0.4.0'
       }
     }
     commonTest {
