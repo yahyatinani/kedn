@@ -436,5 +436,11 @@ class CoreTest : FreeSpec({
         readEdn("[1 2 #_foo 4]") shouldBe v(1L, 2L, 4L)
       }
     }
+
+    "Unreadable forms" {
+      shouldThrowExactly<RuntimeException> {
+        readEdn("#<")
+      }.message shouldBe "Unreadable form"
+    }
   }
 })

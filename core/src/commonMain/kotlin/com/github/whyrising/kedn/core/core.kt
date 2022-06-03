@@ -179,6 +179,10 @@ internal object EdnReader {
     reader
   }
 
+  private val unreadableReader: MacroFn = { _, _ ->
+    throw RuntimeException("Unreadable form")
+  }
+
   init {
     macros['"'.code] = stringReaderFn
     macros[';'.code] = commentReaderFn
@@ -194,6 +198,7 @@ internal object EdnReader {
 
     dispatchMacros['{'.code] = setReader
     dispatchMacros['_'.code] = discardReader
+    dispatchMacros['<'.code] = unreadableReader
   }
 
   private fun readDelimitedList(
