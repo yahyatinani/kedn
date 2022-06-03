@@ -174,6 +174,11 @@ internal object EdnReader {
     hashSet(*readDelimitedList('}', reader).toTypedArray())
   }
 
+  private val discardReader: MacroFn = { reader, _ ->
+    read(reader)
+    reader
+  }
+
   init {
     macros['"'.code] = stringReaderFn
     macros[';'.code] = commentReaderFn
@@ -188,6 +193,7 @@ internal object EdnReader {
     macros['^'.code] = placeholder
 
     dispatchMacros['{'.code] = setReader
+    dispatchMacros['_'.code] = discardReader
   }
 
   private fun readDelimitedList(
