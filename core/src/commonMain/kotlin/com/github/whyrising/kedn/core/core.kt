@@ -191,8 +191,10 @@ internal object EdnReader {
   private val symbolicValueReader: MacroFn = { reader, _ ->
     val symbol = read(reader)
 
-    if (symbol == null)
-      TODO()
+    if (symbol !is Symbol)
+      throw RuntimeException("Invalid token: ##$symbol")
+    if (!symbolicValues.containsKey(symbol))
+      throw RuntimeException("Unknown symbolic value: ##$symbol")
 
     symbolicValues[symbol]!!
   }

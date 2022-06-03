@@ -447,6 +447,12 @@ class CoreTest : FreeSpec({
       readEdn("##Inf") shouldBe Double.POSITIVE_INFINITY
       readEdn("##-Inf") shouldBe Double.NEGATIVE_INFINITY
       readEdn("##NaN") shouldBe Double.NaN
+      shouldThrowExactly<RuntimeException> {
+        readEdn("##nil")
+      }.message shouldBe "Invalid token: ##null"
+      shouldThrowExactly<RuntimeException> {
+        readEdn("##test")
+      }.message shouldBe "Unknown symbolic value: ##test"
     }
   }
 })
