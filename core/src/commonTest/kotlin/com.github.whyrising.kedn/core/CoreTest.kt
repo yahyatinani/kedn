@@ -442,5 +442,9 @@ class CoreTest : FreeSpec({
         readEdn("#<")
       }.message shouldBe "Unreadable form"
     }
+
+    "symbolic values" {
+      readEdn("##Inf") shouldBe Double.POSITIVE_INFINITY
+    }
   }
 })

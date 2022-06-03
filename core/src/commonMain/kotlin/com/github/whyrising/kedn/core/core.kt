@@ -30,6 +30,9 @@ private val DEFAULT_DATA_READER = m<Any, Any>(
 )
 
 internal object EdnReader {
+  private val specials = m<Symbol, Double>(
+    Symbol("Inf"), Double.POSITIVE_INFINITY
+  )
   val macros = arrayOfNulls<MacroFn?>(256)
   private val dispatchMacros = arrayOfNulls<MacroFn?>(256)
   private val placeholder: MacroFn = { _, _ -> }
@@ -183,6 +186,15 @@ internal object EdnReader {
     throw RuntimeException("Unreadable form")
   }
 
+  private val symbolicValueReader: MacroFn = { reader, _ ->
+    val symbol = read(reader)
+
+    if (symbol == null)
+      TODO()
+
+    specials[symbol]!!
+  }
+
   init {
     macros['"'.code] = stringReaderFn
     macros[';'.code] = commentReaderFn
@@ -199,6 +211,7 @@ internal object EdnReader {
     dispatchMacros['{'.code] = setReader
     dispatchMacros['_'.code] = discardReader
     dispatchMacros['<'.code] = unreadableReader
+    dispatchMacros['#'.code] = symbolicValueReader
   }
 
   private fun readDelimitedList(
