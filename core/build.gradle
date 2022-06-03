@@ -9,12 +9,14 @@ kotlin {
     commonMain {
       dependencies {
         implementation deps.y.core
+        implementation deps.kotlinx.datetime
       }
     }
     commonTest {
       dependencies {
         implementation deps.kotest.engine
         implementation deps.kotest.assertions
+        implementation deps.kotlin.test
       }
     }
     jvmTest {

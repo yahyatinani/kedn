@@ -3,21 +3,14 @@ package com.github.whyrising.kedn.core
 import com.github.whyrising.kedn.core.EdnReader.macroFn
 import com.github.whyrising.kedn.core.EdnReader.macros
 import com.github.whyrising.y.core.Symbol
+import com.github.whyrising.y.core.get
 import com.github.whyrising.y.core.hashSet
 import com.github.whyrising.y.core.toPlist
 import com.github.whyrising.y.core.util.m
 import com.github.whyrising.y.core.vec
+import kotlinx.datetime.toInstant
 
 internal typealias MacroFn = (reader: SequenceIterator<Char>, Char) -> Any
-
-/* Built-in
-  nil       -> null x
-  boolean   -> Boolean x
-  integer   -> Long x
-  floating  -> Double x
-  character -> Char
-  strings   -> String x
- */
 
 private val intRegex = Regex(
   "([-+]?)(?:(0)|([1-9][0-9]*)|0[xX]([0-9A-Fa-f]+)|0([0-7]+)|([1-9][0-9]?)" +
@@ -31,9 +24,14 @@ private val ratioRegex = Regex("([-+]?[0-9]+)/([0-9]+)")
 
 private val symbolRegex = Regex("[:]?([\\D&&[^/]].*/)?(/|[\\D&&[^/]][^/]*)")
 
+private val DEFAULT_DATA_READER = m<Any, Any>(
+  Symbol("inst"), { instant: Any -> (instant as String).toInstant() },
+  Symbol("uuid"), { instant: Any -> EdnNode(instant as String, NodeType.UUID) }
+)
+
 internal object EdnReader {
   val macros = arrayOfNulls<MacroFn?>(256)
-  val dispatchMacros = arrayOfNulls<MacroFn?>(256)
+  private val dispatchMacros = arrayOfNulls<MacroFn?>(256)
   private val placeholder: MacroFn = { _, _ -> }
   private val stringReaderFn: MacroFn = { reader, _ ->
     buildString {
@@ -142,21 +140,34 @@ internal object EdnReader {
       throw RuntimeException("Map literal must contain an even number of forms")
     m<Any?, Any?>(*a)
   }
+  private val taggedReader: MacroFn = { reader, _ ->
+    val tag = read(reader)
+
+    if (tag !is Symbol)
+      throw RuntimeException("Reader tag must be a symbol")
+
+    val dataReader = DEFAULT_DATA_READER[tag] as ((Any) -> Any)?
+      ?: throw RuntimeException("No reader function for tag: $tag")
+
+    val o = read(reader)
+
+    dataReader(o!!)
+  }
   private val dispatchReader: MacroFn = { reader, c ->
     if (!reader.hasNext())
       throw RuntimeException("EOF while reading character")
 
     val ch = reader.next()
-    val fn = dispatchMacros[ch.code]
 
-    if (fn == null) {
-      if (!ch.isLetter())
-        throw RuntimeException("No dispatch macro for: $ch")
-
-      TODO("Tagged reader")
+    when (val fn = dispatchMacros[ch.code]) {
+      null -> {
+        if (!ch.isLetter())
+          throw RuntimeException("No dispatch macro for: $ch")
+        reader.previous()
+        taggedReader(reader, ch)
+      }
+      else -> fn(reader, ch)
     }
-
-    fn(reader, ch)
   }
 
   private val setReader: MacroFn = { reader, _ ->
