@@ -427,5 +427,14 @@ class CoreTest : FreeSpec({
         readEdn("#4")
       }.message shouldBe "No dispatch macro for: 4"
     }
+
+    "discard sequence" - {
+      "discard element after discard sequence" {
+        readEdn("[1 2 #_ 3 4]") shouldBe v(1L, 2L, 4L)
+        readEdn("[1 2 #_     3 4]") shouldBe v(1L, 2L, 4L)
+        readEdn("[1 2 #_3 4]") shouldBe v(1L, 2L, 4L)
+        readEdn("[1 2 #_foo 4]") shouldBe v(1L, 2L, 4L)
+      }
+    }
   }
 })
