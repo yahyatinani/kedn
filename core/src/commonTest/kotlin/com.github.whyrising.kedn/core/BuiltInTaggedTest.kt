@@ -1,6 +1,5 @@
 package com.github.whyrising.kedn.core
 
-import com.benasher44.uuid.uuidFrom
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.toInstant
@@ -16,7 +15,7 @@ class BuiltInTaggedTest {
   @Test
   fun `readEdn should return Uuid`() {
     val uuid = "f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
-    readEdn("#uuid \"$uuid\"") shouldBe uuidFrom(uuid)
+    readEdn("#uuid \"$uuid\"") shouldBe EdnNode(uuid, NodeType.UUID)
   }
 
   @Test

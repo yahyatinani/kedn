@@ -1,6 +1,5 @@
 package com.github.whyrising.kedn.core
 
-import com.benasher44.uuid.uuidFrom
 import com.github.whyrising.kedn.core.EdnReader.macroFn
 import com.github.whyrising.kedn.core.EdnReader.macros
 import com.github.whyrising.y.core.Symbol
@@ -12,15 +11,6 @@ import com.github.whyrising.y.core.vec
 import kotlinx.datetime.toInstant
 
 internal typealias MacroFn = (reader: SequenceIterator<Char>, Char) -> Any
-
-/* Built-in
-  nil       -> null x
-  boolean   -> Boolean x
-  integer   -> Long x
-  floating  -> Double x
-  character -> Char
-  strings   -> String x
- */
 
 private val intRegex = Regex(
   "([-+]?)(?:(0)|([1-9][0-9]*)|0[xX]([0-9A-Fa-f]+)|0([0-7]+)|([1-9][0-9]?)" +
@@ -36,7 +26,7 @@ private val symbolRegex = Regex("[:]?([\\D&&[^/]].*/)?(/|[\\D&&[^/]][^/]*)")
 
 private val DEFAULT_DATA_READER = m<Any, Any>(
   Symbol("inst"), { instant: Any -> (instant as String).toInstant() },
-  Symbol("uuid"), { instant: Any -> uuidFrom(instant as String) }
+  Symbol("uuid"), { instant: Any -> EdnNode(instant as String, NodeType.UUID) }
 )
 
 internal object EdnReader {
