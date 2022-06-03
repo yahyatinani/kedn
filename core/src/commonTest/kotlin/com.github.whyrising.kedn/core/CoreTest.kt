@@ -445,6 +445,7 @@ class CoreTest : FreeSpec({
 
     "symbolic values" {
       readEdn("##Inf") shouldBe Double.POSITIVE_INFINITY
+      readEdn("##-Inf") shouldBe Double.NEGATIVE_INFINITY
     }
   }
 })

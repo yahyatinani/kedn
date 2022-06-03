@@ -30,8 +30,9 @@ private val DEFAULT_DATA_READER = m<Any, Any>(
 )
 
 internal object EdnReader {
-  private val specials = m<Symbol, Double>(
-    Symbol("Inf"), Double.POSITIVE_INFINITY
+  private val symbolicValues = m<Symbol, Double>(
+    Symbol("Inf"), Double.POSITIVE_INFINITY,
+    Symbol("-Inf"), Double.NEGATIVE_INFINITY,
   )
   val macros = arrayOfNulls<MacroFn?>(256)
   private val dispatchMacros = arrayOfNulls<MacroFn?>(256)
@@ -192,7 +193,7 @@ internal object EdnReader {
     if (symbol == null)
       TODO()
 
-    specials[symbol]!!
+    symbolicValues[symbol]!!
   }
 
   init {
