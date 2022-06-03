@@ -33,6 +33,7 @@ internal object EdnReader {
   private val symbolicValues = m<Symbol, Double>(
     Symbol("Inf"), Double.POSITIVE_INFINITY,
     Symbol("-Inf"), Double.NEGATIVE_INFINITY,
+    Symbol("NaN"), Double.NaN,
   )
   val macros = arrayOfNulls<MacroFn?>(256)
   private val dispatchMacros = arrayOfNulls<MacroFn?>(256)
