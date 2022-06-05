@@ -13,12 +13,16 @@ spotless {
   }
   kotlin {
     target "**/*.kt"
+    targetExclude "buildSrc/build/"
     ktlint(deps.versions.ktlint.get()).userData([
       "indent_size"    : "2",
       "max_line_length": "80"
     ])
     trimTrailingWhitespace()
     endWithNewline()
+  }
+  kotlinGradle {
+    ktlint()
   }
 }
 
