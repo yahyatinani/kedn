@@ -1,6 +1,5 @@
 plugins {
-  alias(deps.plugins.kotlin.multiplatform)
-  id("com.github.whyrising.kedn.multiplatform")
+  id 'kedn.multiplatform-library-conventions'
   alias(deps.plugins.kotest)
 }
 
@@ -23,20 +22,6 @@ kotlin {
       dependencies {
         implementation deps.kotest.jvm.runner
       }
-    }
-    nativeMain {
-      dependencies {
-      }
-    }
-    nativeTest {
-      dependencies {
-      }
-    }
-
-    all {
-      languageSettings.optIn("kotlin.time.ExperimentalTime")
-      languageSettings.optIn("kotlin.experimental.ExperimentalTypeInference")
-      languageSettings.optIn("kotlin.RequiresOptIn")
     }
   }
 }

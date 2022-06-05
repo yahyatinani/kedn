@@ -1,7 +1,4 @@
-import com.github.whyrising.kedn.Ci
-
 plugins {
-  alias(deps.plugins.kotlin.multiplatform) apply false
   alias(deps.plugins.spotless)
   alias(deps.plugins.kotlinx.kover)
   alias(deps.plugins.kotest) apply false
@@ -16,12 +13,16 @@ spotless {
   }
   kotlin {
     target "**/*.kt"
+    targetExclude "buildSrc/build/"
     ktlint(deps.versions.ktlint.get()).userData([
       "indent_size"    : "2",
       "max_line_length": "80"
     ])
     trimTrailingWhitespace()
     endWithNewline()
+  }
+  kotlinGradle {
+    ktlint()
   }
 }
 
@@ -39,22 +40,4 @@ tasks.koverMergedXmlReport {
 
 tasks.koverCollectReports {
   outputDir.set(layout.buildDirectory.dir("reports/kover/all-modules-reports"))
-}
-
-allprojects {
-  group = Ci.group
-  version = Ci.publishVersion
-
-  tasks.withType(JavaCompile) {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-  }
-
-  tasks.withType(Test).configureEach {
-    useJUnitPlatform()
-    testLogging {
-      events = ["failed", "skipped", "passed"]
-      exceptionFormat "full"
-    }
-  }
 }
