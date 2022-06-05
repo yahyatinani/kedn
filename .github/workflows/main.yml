@@ -1,4 +1,4 @@
-name: build
+name: Main build
 
 on:
   push:
@@ -38,6 +38,9 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: true
           verbose: true
+
+      - name: publish snapshots
+        run: ./gradlew publish
 
       - name: Bundle the build report (when failure)
         if: failure()
