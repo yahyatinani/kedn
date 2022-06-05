@@ -249,7 +249,7 @@ class CoreTest : FreeSpec({
       shouldThrowExactly<RuntimeException> {
         readEdn("\\o666")
       }.message shouldBe "Octal escape sequence must be in range [0, 255]."
-      readEdn("\\o344") shouldBe 'ä'
+      readEdn("\\o344") shouldBe '\u00E4'
       shouldThrowExactly<IllegalArgumentException> {
         readEdn("\\o999")
       }.message shouldBe "Invalid digit: 9"
@@ -262,7 +262,7 @@ class CoreTest : FreeSpec({
         readEdn("\\uD800")
       }.message shouldBe "Invalid character constant: \\ud800"
 
-      readEdn("\\uEFFF") shouldBe ''
+      readEdn("\\uEFFF") shouldBe '\uEFFF'
 
       shouldThrowExactly<RuntimeException> {
         readEdn("\\uDFFF")
