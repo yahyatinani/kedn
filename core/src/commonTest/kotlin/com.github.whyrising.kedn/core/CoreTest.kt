@@ -298,11 +298,11 @@ class CoreTest : FreeSpec({
         readEdn("(2  343\n nil \n432\n)") shouldBe l(2L, 343L, null, 432L)
         readEdn(
           """
-          (2
-          343
-          nil
-          432)
-        """
+                (2
+                343
+                nil
+                432)
+              """
         ) shouldBe l(2L, 343L, null, 432L)
       }
 
@@ -325,16 +325,16 @@ class CoreTest : FreeSpec({
       "list with comments" {
         readEdn(
           """
-                    ; list
-          (2
-          ; comment
-          343
-                    ; comment
-          nil
-                    ; comment
-          432)
-                    ; comment
-        """
+                          ; list
+                (2
+                ; comment
+                343
+                          ; comment
+                nil
+                          ; comment
+                432)
+                          ; comment
+              """
         ) shouldBe l(2L, 343L, null, 432L)
       }
 
@@ -368,11 +368,11 @@ class CoreTest : FreeSpec({
           v(2L, 343L, null, 432L)
         readEdn(
           """
-          [2
-          343
-          nil
-          432]
-        """
+                [2
+                343
+                nil
+                432]
+              """
         ) as PersistentVector<*> shouldBe v(2L, 343L, null, 432L)
       }
 
@@ -384,16 +384,16 @@ class CoreTest : FreeSpec({
       "list with comments" {
         readEdn(
           """
-                    ; vector
-          [2
-          ; comment
-          343
-                    ; comment
-          nil
-                    ; comment
-          432]
-                    ; comment
-        """
+                          ; vector
+                [2
+                ; comment
+                343
+                          ; comment
+                nil
+                          ; comment
+                432]
+                          ; comment
+              """
         ) as PersistentVector<*> shouldBe v(2L, 343L, null, 432L)
       }
 

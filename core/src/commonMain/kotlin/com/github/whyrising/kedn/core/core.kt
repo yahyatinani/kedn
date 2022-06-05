@@ -146,7 +146,7 @@ internal object EdnReader {
     m<Any?, Any?>(*a)
   }
   private val taggedReader: MacroFn = { reader, _ ->
-    val tag = read(reader)
+    val tag = readEdn(reader)
 
     if (tag !is Symbol)
       throw RuntimeException("Reader tag must be a symbol")
@@ -154,7 +154,7 @@ internal object EdnReader {
     val dataReader = DEFAULT_DATA_READER[tag] as ((Any) -> Any)?
       ?: throw RuntimeException("No reader function for tag: $tag")
 
-    val o = read(reader)
+    val o = readEdn(reader)
 
     dataReader(o!!)
   }
@@ -180,7 +180,7 @@ internal object EdnReader {
   }
 
   private val discardReader: MacroFn = { reader, _ ->
-    read(reader)
+    readEdn(reader)
     reader
   }
 
@@ -189,7 +189,7 @@ internal object EdnReader {
   }
 
   private val symbolicValueReader: MacroFn = { reader, _ ->
-    val symbol = read(reader)
+    val symbol = readEdn(reader)
 
     if (symbol !is Symbol)
       throw RuntimeException("Invalid token: ##$symbol")
@@ -246,7 +246,7 @@ internal object EdnReader {
 //        a.add(o)
 //      }
       reader.previous()
-      a.add(read(reader))
+      a.add(readEdn(reader))
     }
     return a
   }
@@ -381,7 +381,7 @@ internal fun matchNumber(s: String): Any? {
   return null
 }
 
-fun isMacro(ch: Int) = ch < macros.size && macros[ch] != null
+internal fun isMacro(ch: Int) = ch < macros.size && macros[ch] != null
 
 private fun isWhitespace(c: Char) = c.isWhitespace() || c == ','
 
@@ -416,7 +416,7 @@ internal fun readToken(ch0: Char, iterator: SequenceIterator<Char>) =
     }
   }
 
-fun matchSymbol(s: String): Any? {
+internal fun matchSymbol(s: String): Any? {
   val matchResult = symbolRegex.matchEntire(s) ?: return null
 
   val ns = matchResult.groups[1]?.value
@@ -446,7 +446,7 @@ internal fun interpretToken(s: String): Any? {
   return matchSymbol(s) ?: throw RuntimeException("Invalid token: $s")
 }
 
-internal fun read(iterator: SequenceIterator<Char>): Any? {
+internal fun readEdn(iterator: SequenceIterator<Char>): Any? {
   while (true) {
     if (!iterator.hasNext())
       throw RuntimeException("EOF while reading")
@@ -479,6 +479,6 @@ internal fun read(iterator: SequenceIterator<Char>): Any? {
   }
 }
 
-fun read(seq: Sequence<Char>) = read(SequenceIterator(seq.iterator()))
+fun readEdn(seq: Sequence<Char>) = readEdn(SequenceIterator(seq.iterator()))
 
-fun readEdn(edn: String): Any? = read(edn.asSequence())
+fun readEdn(edn: String): Any? = readEdn(edn.asSequence())
