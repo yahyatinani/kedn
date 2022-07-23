@@ -16,5 +16,5 @@ object Ci {
 
   val publishVersion = releaseVersion ?: snapshotVersion
 
-  const val JVM_ONLY = "jvmOnl"
+  const val JVM_ONLY = "jvmOnly"
 }
