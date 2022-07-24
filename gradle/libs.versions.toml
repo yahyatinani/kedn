@@ -1,8 +1,8 @@
 [versions]
-kotlin = "1.6.21"
+kotlin = "1.7.10"
 ktlint = "0.43.0"
 kover = "0.5.1"
-kotest = "5.3.0"
+kotest = "5.3.2"
 ylib = "0.2.0"
 datetime = "0.3.2"
 
